@@ -1,0 +1,81 @@
+
+
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MZ engineering</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/properties.css' %}">
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <meta name = “theme-color” content = “#cccccc”>
+    <meta name = "msapplication-navbutton-color" content = "#cccccc">
+    <meta name = "apple-mobile-web-app-capable" content = "#cccccc">
+    <meta name = "apple-mobile-web-app-status-bar-style" content = "#cccccc">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp" />
+  </head>
+  {% include "style.html" %}
+  <body>
+    <!-- <div class="container">
+      <label for="" class="filled">
+        <input type="text" value="" required>
+        <span data-label="Filled"></span>
+      </label>
+      <label for="" class="outlined">
+        <input type="text" value="" required>
+        <span data-label="Outlined"></span>
+      </label>
+    </div> -->
+    <div class="screen-manager" id="mainScreenManager">
+      <div class="screen opened-screen" id="splash">
+        <div class="center-container">
+          <img src="{% static 'images/logo.png' %}" width = "250">
+        </div>
+      </div>
+      <div class="screen" id="loginScreen">
+        {% include "components/login.html" %}
+      </div>
+      <div class="screen" id="mainScreen">
+        {% include "components/mainScreen.html" %}
+      </div>
+      <div class="screen" id="searchScreen">
+        {% include "components/search.html" %}
+      </div>
+      <div class="screen" id="addSubscribersOrder">
+        {% include "components/subscribers/addOrder.html" %}
+      </div>
+      <div class="screen" id="viewSubscribers">
+        {% include "components/subscribers/viewOrders.html" %}
+      </div>
+      {% include "components/drawer.html" %}
+    </div>
+  </body>
+  <div id="snackbar" class="snackbar"><p id="snackbarText"></p></div>
+  <script src="{% static 'script/jQuery.js' %}"></script>
+  <script src="{% static 'script/script.js' %}"></script>
+  
+  <script>
+    
+  document.addEventListener('DOMContentLoaded', function() {
+  document.body.style.display = 'none';
+});
+window.addEventListener('load', function() {
+  document.body.style.display = 'block';
+});
+  var isLoggedIn = {{isLoggedIn}};
+    setTimeout(() => {
+      if(isLoggedIn){
+        screen = "mainScreen";
+      }else{
+        screen = "loginScreen";
+      }
+      navigateScreen(screen, "mainScreenManager");
+    }, 500);
+    $(document).on("click", "#searchButton", () => navigateScreen("searchScreen", "mainScreenManager"));
+  </script>
+</html>

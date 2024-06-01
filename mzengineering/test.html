@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محرر الصور</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+</head>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+    margin: 0;
+}
+
+.container {
+    text-align: center;
+}
+
+.hidden {
+    display: none;
+}
+
+.img-container {
+    max-width: 100%;
+    margin-bottom: 10px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+</style>
+<body>
+    <div class="container">
+        <form id="imageForm" method="post" enctype="multipart/form-data" action="http://localhost:1029">
+            <input type="file" id="imageInput" accept="image/*">
+            <div id="imageEditor" class="hidden">
+                <div class="img-container">
+                    <img id="selectedImage" alt="الصورة المختارة">
+                </div>
+                <button type="button" id="cropButton">قص</button>
+            </div>
+            <div id="result" class="hidden">
+                <h3>الصورة بعد القص:</h3>
+                <img id="croppedImage" alt="الصورة المقصوصة">
+            </div>
+            <input type="hidden" name="croppedImageData" id="croppedImageData">
+            <button type="submit" id="submitButton">إرسال</button>
+        </form>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+    <script>
+let cropper;
+
+document.getElementById('imageInput').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.getElementById('selectedImage');
+            img.src = e.target.result;
+            document.getElementById('imageEditor').classList.remove('hidden');
+
+            if (cropper) {
+                cropper.destroy();
+            }
+
+            cropper = new Cropper(img, {
+                aspectRatio: NaN, // Allow free aspect ratio
+                viewMode: 1,
+                movable: true,
+                zoomable: true,
+                rotatable: true,
+                scalable: true,
+                autoCropArea: 0.5,
+                responsive: true,
+            });
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+document.getElementById('cropButton').addEventListener('click', function() {
+    if (cropper) {
+        const canvas = cropper.getCroppedCanvas();
+        const croppedImage = document.getElementById('croppedImage');
+        croppedImage.src = canvas.toDataURL();
+
+        document.getElementById('result').classList.remove('hidden');
+        
+        // Store the cropped image data in a hidden input
+        canvas.toBlob(function(blob) {
+            const fileInput = document.getElementById('croppedImageData');
+            const file = new File([blob], "croppedImage.png", { type: "image/png" });
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+        }, 'image/png');
+    }
+});
+
+document.getElementById('imageForm').addEventListener('submit', function(event) {
+    const croppedImageData = document.getElementById('croppedImageData').files;
+    if (croppedImageData.length === 0) {
+        alert('يرجى قص الصورة قبل الإرسال');
+        event.preventDefault();
+    }
+});
+
+    </script>
+</body>
+</html>

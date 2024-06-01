@@ -1,0 +1,106 @@
+<div class="stepper-manager" id="addOrder">
+  <div class="stepper" style="overflow: hidden;">
+    <div class="center-container">
+      <div>
+        <h1>التعليمات</h1>
+        <p>لكي تتمكن من استخدام ميزة إضافة طلب,<br> عليك السماح بالوصول إلى موقعك.</p>
+        <p>يرجى اتباع التعليمات التالية حسب جهازك:</p>
+        <h2>لمستخدمي iPhone:</h2>
+        <ol>
+            <li>افتح تطبيق الإعدادات.</li>
+            <li>انتقل لأسفل واضغط على الخصوصية.</li>
+            <li>اضغط على خدمات الموقع.</li>
+            <li>تأكد من أن خدمات الموقع قيد التشغيل.</li>
+            <li>انتقل لأسفل وابحث عن متصفحك (مثل سفاري).</li>
+            <li>اضغط على متصفحك واختر "أثناء الاستخدام للتطبيق".</li>
+        </ol>
+        <h2>لمستخدمي Android:</h2>
+        <ol>
+            <li>افتح تطبيق الإعدادات.</li>
+            <li>انتقل لأسفل واضغط على الموقع.</li>
+            <li>تأكد من أن الموقع قيد التشغيل.</li>
+            <li>انتقل لأسفل وابحث عن متصفحك (مثل كروم).</li>
+            <li>اضغط على متصفحك واختر "السماح طوال الوقت".</li>
+        </ol>
+        <h2>الفقرة الأخيرة:</h2>
+        <p>"بمجرد ظهور رسالة الأذونات، يرجى النقر<br> على زر 'موافق' أو 'السماح' للسماح بالوصول إلى الموقع."</p>
+        <br>
+        <button class="primary" onclick="allowPermessions();" style="width:100px;">موافق</button>
+      </div>
+    </div>
+  </div>
+  <div class="stepper">
+    <div class="center-container">
+      <div class="container">
+        <br>
+        <br>
+        <label for="" class="filled">
+          <input type="text" value="" name="orderNumber" id="orderNumber" required>
+          <span data-label="رقم الطلب"></span>
+        </label>
+        <br>
+        <label for="" class="filled">
+          <input type="text" value="" name="contractor" id="contractor" required>
+          <span data-label="المقاول"></span>
+        </label>
+        <br>
+        <label for="" class="filled">
+          <input type="text" value="" name="distract" id="distract" required>
+          <span data-label="الحي"></span>
+        </label>
+        <br>
+        <label for="" class="filled">
+          <input type="text" value="" data-menu="orderTypeMenu" name="orderType" readonly id="orderType" required>
+          <span data-label="نوع العمل"></span>
+        </label>
+        <div class="menu" id="orderTypeMenu">
+          <button>عداد</button>
+          <button>تنفيذ شبكة</button>
+        </div>
+        <br>
+        <br>
+        <br>
+        <p style="font-size:20pt;">النماذج</p>
+        <button class="outline" data-for="object">إختيار صورة</button>
+        <input type="file" accept="image/*" id="object" hidden>
+      </div>
+    </div>
+  </div>
+  <div class="stepper">
+    <div class="center-container">
+      <h1>C</h1>
+    </div>
+  </div>
+  <div class="stepper">
+    <div class="center-container">
+      <h1>D</h1>
+    </div>
+  </div>
+  <div class="stepper">
+    <div class="center-container">
+      <h1>E</h1>
+    </div>
+  </div>
+</div>
+<script>
+const allowPermessions = () => {
+  if ("geolocation" in navigator) {
+    console.log("asd");
+  // طلب إذن الوصول إلى الموقع
+  navigator.geolocation.getCurrentPosition(
+    // دالة النجاح التي تُنفذ عند الحصول على الإحداثيات
+    function(position) {
+    console.log("asd2");
+      navigateStepper('addOrder', true);
+    },
+    // دالة الخطأ التي تُنفذ في حالة حدوث خطأ
+    function(error) {
+    console.log("asd3");
+      alert("Error Code = " + error.code + " - " + error.message);
+    }
+  );
+} else {
+  alert("تحديد الموقع الجغرافي غير مدعوم من هذا المتصفح.");
+}
+}
+</script>

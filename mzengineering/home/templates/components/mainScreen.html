@@ -1,0 +1,23 @@
+<div>
+  <nav>
+    <div class="left-icons">
+      <button onclick="openNavDrawer(true);" class="ibtn"><span class="material-symbols-sharp">menu</span></button>
+    </div>
+    <p id = "navHeader">الصفحة الرئيسية</p>
+    <div class="right-icons">
+      <button id="searchButton" class="ibtn"><span class="material-symbols-sharp">search</span></button>
+    </div>
+  </nav>
+  <aside></aside>
+  <main class="home-screens">
+    <div id="main" class="visible-screen">
+      {% include 'components/homeScreens/main.html' %}
+    </div>
+    <div id="subscribers">
+      <div class="center-container">
+        <button onclick="navigateScreen('viewSubscribers','mainScreenManager')" class="outline" style="margin-right:20px;"><span class="material-symbols-sharp">visibility</span>عرض طلب</button>
+        <button onclick="navigateScreen('addSubscribersOrder','mainScreenManager')" class="outline"><span class="material-symbols-sharp">add</span>إضافة طلب</button>
+      </div>
+    </div>
+  </main>
+</div>
