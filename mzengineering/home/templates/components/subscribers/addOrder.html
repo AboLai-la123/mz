@@ -1,106 +1,141 @@
-<div class="stepper-manager" id="addOrder">
-  <div class="stepper" style="overflow: hidden;">
-    <div class="center-container">
-      <div>
-        <h1>التعليمات</h1>
-        <p>لكي تتمكن من استخدام ميزة إضافة طلب,<br> عليك السماح بالوصول إلى موقعك.</p>
-        <p>يرجى اتباع التعليمات التالية حسب جهازك:</p>
-        <h2>لمستخدمي iPhone:</h2>
-        <ol>
-            <li>افتح تطبيق الإعدادات.</li>
-            <li>انتقل لأسفل واضغط على الخصوصية.</li>
-            <li>اضغط على خدمات الموقع.</li>
-            <li>تأكد من أن خدمات الموقع قيد التشغيل.</li>
-            <li>انتقل لأسفل وابحث عن متصفحك (مثل سفاري).</li>
-            <li>اضغط على متصفحك واختر "أثناء الاستخدام للتطبيق".</li>
-        </ol>
-        <h2>لمستخدمي Android:</h2>
-        <ol>
-            <li>افتح تطبيق الإعدادات.</li>
-            <li>انتقل لأسفل واضغط على الموقع.</li>
-            <li>تأكد من أن الموقع قيد التشغيل.</li>
-            <li>انتقل لأسفل وابحث عن متصفحك (مثل كروم).</li>
-            <li>اضغط على متصفحك واختر "السماح طوال الوقت".</li>
-        </ol>
-        <h2>الفقرة الأخيرة:</h2>
-        <p>"بمجرد ظهور رسالة الأذونات، يرجى النقر<br> على زر 'موافق' أو 'السماح' للسماح بالوصول إلى الموقع."</p>
-        <br>
-        <button class="primary" onclick="allowPermessions();" style="width:100px;">موافق</button>
-      </div>
-    </div>
+<nav>
+  <div class="left-icons">
+    <button onclick="navigateScreen('mainScreen','mainScreenManager',true);" class="ibtn"><span class="material-symbols-sharp">arrow_back</span></button>
   </div>
-  <div class="stepper">
-    <div class="center-container">
-      <div class="container">
-        <br>
-        <br>
-        <label for="" class="filled">
-          <input type="text" value="" name="orderNumber" id="orderNumber" required>
-          <span data-label="رقم الطلب"></span>
-        </label>
-        <br>
-        <label for="" class="filled">
-          <input type="text" value="" name="contractor" id="contractor" required>
-          <span data-label="المقاول"></span>
-        </label>
-        <br>
-        <label for="" class="filled">
-          <input type="text" value="" name="distract" id="distract" required>
-          <span data-label="الحي"></span>
-        </label>
-        <br>
-        <label for="" class="filled">
-          <input type="text" value="" data-menu="orderTypeMenu" name="orderType" readonly id="orderType" required>
-          <span data-label="نوع العمل"></span>
-        </label>
-        <div class="menu" id="orderTypeMenu">
-          <button>عداد</button>
-          <button>تنفيذ شبكة</button>
+  <p>عرض طلب</p>
+</nav>
+<main>
+  <div class="stepper-manager" id="addOrder">
+    <div class="stepper" style="overflow: hidden;">
+      <div class="center-container">
+        <div>
+          <h1>التعليمات</h1>
+          <p>لكي تتمكن من استخدام ميزة إضافة طلب,<br> عليك السماح بالوصول إلى موقعك.</p>
+          <p>يرجى اتباع التعليمات التالية حسب جهازك:</p>
+          <h2>لمستخدمي iPhone:</h2>
+          <ol>
+              <li>افتح تطبيق الإعدادات.</li>
+              <li>انتقل لأسفل واضغط على الخصوصية.</li>
+              <li>اضغط على خدمات الموقع.</li>
+              <li>تأكد من أن خدمات الموقع قيد التشغيل.</li>
+              <li>انتقل لأسفل وابحث عن متصفحك (مثل سفاري).</li>
+              <li>اضغط على متصفحك واختر "أثناء الاستخدام للتطبيق".</li>
+          </ol>
+          <h2>لمستخدمي Android:</h2>
+          <ol>
+              <li>افتح تطبيق الإعدادات.</li>
+              <li>انتقل لأسفل واضغط على الموقع.</li>
+              <li>تأكد من أن الموقع قيد التشغيل.</li>
+              <li>انتقل لأسفل وابحث عن متصفحك (مثل كروم).</li>
+              <li>اضغط على متصفحك واختر "السماح طوال الوقت".</li>
+          </ol>
+          <h2>الفقرة الأخيرة:</h2>
+          <p>"بمجرد ظهور رسالة الأذونات، يرجى النقر<br> على زر 'موافق' أو 'السماح' للسماح بالوصول إلى الموقع."</p>
+          <br>
+          <button class="primary" onclick="allowPermessions();" style="width:100px;">موافق</button>
         </div>
-        <br>
-        <br>
-        <br>
-        <p style="font-size:20pt;">النماذج</p>
-        <button class="outline" data-for="object">إختيار صورة</button>
-        <input type="file" accept="image/*" id="object" hidden>
+      </div>
+    </div>
+    <div class="stepper">
+      <div class="center-container">
+        <form method="POST" id="imageForm" action = "addOrder" class="container">
+          {% csrf_token %}
+          <br>
+          <br>
+          <label for="" class="filled">
+            <input type="text" value="" name="orderNumber" id="orderNumber" required>
+            <span data-label="رقم الطلب"></span>
+          </label>
+          <br>
+          <label for="" class="filled">
+            <input type="text" value="" name="contractor" id="contractor" required>
+            <span data-label="المقاول"></span>
+          </label>
+          <br>
+          <label for="" class="filled">
+            <input type="text" value="" name="distract" id="distract" required>
+            <span data-label="الحي"></span>
+          </label>
+          <br>
+          <label for="" class="filled">
+            <input type="text" value="" placeholder=" " data-dropdown="orderTypeMenu" name="orderType" readonly id="orderType" required>
+            <span data-label="نوع العمل"></span>
+          </label>
+          <div class="menu" id="orderTypeMenu">
+            <button type="button">عداد</button>
+            <button type="button">تنفيذ شبكة</button>
+          </div>
+          <br>
+          <br>
+          <br>
+          <p style="font-size:20pt;">النماذج</p>
+          <button class="outline" type="button" data-for="image">إختيار صورة</button>
+          <input type="file" accept="image/*" id="image" hidden>
+          <div class="images-box" id="objects">
+            <div>
+              <button type="button" data-delete="1">حذف</button>
+              <div id="image1">
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAAXNSR0IArs4c6QAABC1JREFUWEftmUtoE1EUhv+bTDJNLOJbcCUqKLa4KYILwY3gQmy1Yl1pd4pPSvfVUhW6EB87F203YtFNqVAErSbQjUURBbsQQYoVH0h8tUkn87pXzp12JslMYmoVB8mFbpI5c7/7n3P+c9uy6fp6gZAsG8Ak58gJD4mFCZB0sgB84hzfhQADEDpAgjQBTNk2jLACEqQO4APn4VRwviVCreA8ZChrsNBUaoCLtVg2u2+fz6iFYQC5HMSXL+BTUwAjR/IWW74ckfXrgVjMv79hQHz7Bv72bTCboiCyZQtYMlkVOxO27Z8kQkDoOkQmA3tsDOaNG7BfvgQ4ly9VWlpQd+UK2MqVvk3ocPJg4+Mw+vpgP30K0IHnFluxAsmREUS2bq0SUBTMlTIh/PVraO3t4BMTDuD+/ai7di0QsPAVdMB8ZyesoSE3CxLw3j1EGhoWBihmZiA0zQmiNCxbBkQi7kvsFy+gNTfL9PkAbRs8k5HPy7iC1ItsFnpHB8zbtyVkECC9U5g0P/yLiTkF9a4uGJcvO08IgdixY1AvXgRbutT5jHPk29thDg/7AMXHj8hSTRLgpk2Id3Uh1tbm7WZZyDY2Qrx/7wcUAlpLC6zR0V8AnjsH4+pVr1aSScS7uxE/ccL9zBwYQP7MGSitrUUploAbNwLRqHyW1dcjcf8+otu2ubFGby/0S5eCAVtbYT18uDBAUjF++jTU3l4vzek0ZvfuhXLwYEVACoh3dEC9cMGLff4cszt3gq1aVVyDpODvALJEwlHw5ElPwf5+5M+e/aWCsox37UJiZMRTRdMws2ZNoIL6+fPgz575FBS5HNwatIaHvTpQVSi7d0PZs8dNG3QdWlsbrFQquAYLUkw7RRobseTx46JNs+vWyQaqtovtiQkPkADcTopGwerqigzaTqehHTkC8eNHdYANDVgyPv4HAQNLFCD7oQ4zenrA37xxXKjEB0ubhJ6Jbt+OZCpV1Mkza9fKBipVkHyWDl66aD83xdLt57yIRouYnoZ49QrW3bswbt0C8nk3vhpA5dAhJAYG3Bjx+bO0IrZ6ta9J8kePwkqn/RLZtgdY5IPSK5hj1CVzuCoFhUBicBBKc7O7qTU4CO348T9oM2VSXhZwwwanoVQV0R075Lx1D0dWcuAArEeP/hFgNguzv18CRjZvRrSpSYLIZVkw79xB/tQpgFJWOot/1wcrCFj1ZUHyjY6CaoxmsqycsABSk5l9fTCuX4f4+tU974IB9e5ueR+0xsZgP3lSSTj3O0ojGTlNm9JFXsrfvYP94IGrWuEzFBM7fFiOPLmEgDk0BD45Gbg3m04knAtrmY4NjKIr5Nzl1fc9df38T7njUmzhNbTC3rVfmqqqmQoP1RSsKbhYBRYbX6vB/1/BTIj+iB6kNkvNj7rF5uIvxbObqhqaf0MEnfEnjh+PUrECTrUAAAAASUVORK5CYII=" class="cropped-image">
+              </div>
+            </div>
+          </div>
+          <br>
+          <br>
+          <br>
+          <p style="font-size:20pt;">صور الموقع</p>
+          <button class="outline" type="button" data-for="address">إختيار صورة</button>
+          <div class="images-box" id="addresses">
+          </div>
+          <br>
+          <br>
+          <br>
+          <p style="font-size:20pt;">مخالفات السلامة</p>
+          <button class="outline" type="button" data-for="violation">إختيار صورة</button>
+          <div class="images-box" id="violations">
+          </div>
+          <br><br>
+          <hr>
+          <br>
+          
+          <button class="primary">حفظ</button>
+          <br>
+          <button class="outline">حفظ وأرشفة</button>
+        </form>
+      </div>
+    </div>
+    <div class="stepper">
+      <div class="center-container">
+        <h1>C</h1>
+      </div>
+    </div>
+    <div class="stepper">
+      <div class="center-container">
+        <h1>D</h1>
+      </div>
+    </div>
+    <div class="stepper">
+      <div class="center-container">
+        <h1>E</h1>
       </div>
     </div>
   </div>
-  <div class="stepper">
-    <div class="center-container">
-      <h1>C</h1>
-    </div>
-  </div>
-  <div class="stepper">
-    <div class="center-container">
-      <h1>D</h1>
-    </div>
-  </div>
-  <div class="stepper">
-    <div class="center-container">
-      <h1>E</h1>
-    </div>
-  </div>
-</div>
-<script>
-const allowPermessions = () => {
-  if ("geolocation" in navigator) {
-    console.log("asd");
-  // طلب إذن الوصول إلى الموقع
-  navigator.geolocation.getCurrentPosition(
-    // دالة النجاح التي تُنفذ عند الحصول على الإحداثيات
-    function(position) {
-    console.log("asd2");
-      navigateStepper('addOrder', true);
-    },
-    // دالة الخطأ التي تُنفذ في حالة حدوث خطأ
-    function(error) {
-    console.log("asd3");
-      alert("Error Code = " + error.code + " - " + error.message);
-    }
-  );
-} else {
-  alert("تحديد الموقع الجغرافي غير مدعوم من هذا المتصفح.");
-}
-}
-</script>
+  <script>
+  const allowPermessions = () => {
+    if ("geolocation" in navigator) {
+    // طلب إذن الوصول إلى الموقع
+    navigator.geolocation.getCurrentPosition(
+      // دالة النجاح التي تُنفذ عند الحصول على الإحداثيات
+      function(position) {
+        navigateStepper('addOrder', true);
+      },
+      // دالة الخطأ التي تُنفذ في حالة حدوث خطأ
+      function(error) {
+        alert("Error Code = " + error.code + " - " + error.message);
+      }
+    );
+  } else {
+    alert("تحديد الموقع الجغرافي غير مدعوم من هذا المتصفح.");
+  }
+  }
+  </script>
+</main>

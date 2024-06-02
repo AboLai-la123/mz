@@ -1,8 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic&family=Roboto&display=swap');
 *{
-    margin:0px;
-    padding:0px;
-    outline:none;
+    margin: 0px;
+    padding: 0px;
+    outline: none;
     font-family: 'Roboto','Noto Naskh Arabic', sans-serif;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -13,7 +13,12 @@
     -webkit-user-select: none;
     -webkit-tap-highlight-color: rgba(0,0,0,0);
     -webkit-touch-callout: none;
-    box-sizing:border-box;
+    box-sizing: border-box;
+    color: black;
+}
+
+button{
+    cursor:pointer;
 }
 
 
@@ -33,6 +38,10 @@
     transition-duration: .2s;
     box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
 }
+
+
+
+/* -- Input -- */
 
 :root {
     --bg: #f5f5f5;
@@ -62,9 +71,9 @@ label > span::before {
     color: gray;
     line-height: 1;
 }
-label > input:focus ~ span::before, label > input:valid ~ span::before {
+label > input:focus ~ span::before {
     font-size: 12px;
-    color: blueviolet;
+    color: blue;
 }
 input {
     width: 100%;
@@ -87,12 +96,16 @@ input:focus, input:active {
 .filled > input:hover {
     background-color: var(--bg-hover1);
 }
-.filled > input:focus ~ span::before, .filled > input:valid ~ span::before {
+.filled > input:valid ~ span::before, .filled > input[data-dropdown]:not(:placeholder-shown) ~ span::before, .filled > input[data-menu]:not(:placeholder-shown) ~ span::before {
+    transform: translateY(-12px);
+    font-size: 12px;
+}
+.filled > input:focus ~ span::before{
     transform: translateY(-12px);
     font-size: 12px;
     color: blue;
 }
-.filled > input:focus ~ span::after, .filled > input:valid ~ span::after {
+.filled > input:focus ~ span::after {
     width: 100%;
 }
 .filled > span::after {
@@ -119,6 +132,10 @@ input:focus, input:active {
     background-color: white;
     padding: 2px 4px;
 }
+
+
+
+
 
 .container {
     margin: auto;
@@ -162,6 +179,13 @@ input:focus, input:active {
     align-items: center;
     justify-content: center;
 }
+
+
+
+
+
+/* -- Button -- */
+
 
 .outline{
     height:40px;
@@ -220,7 +244,8 @@ input:focus, input:active {
     font-size:20pt;
 }
 .ibtn:active, .ibtn:hover{
-    background-color:#ccc;
+    /* background-color:#ccc; */
+    background-color:rgba(0, 0, 0, .1);
 }
 
 
@@ -344,6 +369,18 @@ main{
 
 
 
+/* -- Custom screens -- */
+
+.image-editor-screen nav{
+    background-color:#333;
+}
+.image-editor-screen nav *{
+    color:white;
+}
+.image-editor-screen main{
+    background-color: #555;
+}
+
 .home-screens > div{
     display:none;
     height:100%;
@@ -385,21 +422,67 @@ main{
     position:absolute;
     background-color:white;
     border-radius:5px;
-    box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
     padding-block:10px;
     transition-duration: .2s;
+    display:none;
+    opacity:0;
+    transform: scale(.7);
+    transform-origin: top;
 }
 
 .menu button{
     width:100%;
     text-align:left;
     padding:5px;
-    font-size:12pt;
+    font-size:16px;
     transition-duration: .2s;
     border:0px;
     background-color:transparent;
-    padding-left:10px;
+    padding-left:15px;
 }
 .menu button:hover, .menu button:active{
     background-color:rgba(0, 0, 0, .1);
+}
+
+.opened.menu{
+    opacity: 1;
+    transform: scale(1);
+}
+
+
+
+/* -- Images -- */
+
+.images-box{
+    width:100%;
+    display:grid;
+    grid-template-columns: 20% 20% 20% 20%;
+    gap:6.5%;
+    margin-top:20px;
+}
+.images-box > div, .images-box > div > div{
+    width:100%;
+    height:120px;
+    overflow: hidden;
+}
+.images-box > div > div{
+    height:100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.images-box img{
+    min-width:100%;
+}
+
+.images-box button{
+    background-color:rgba(0, 0, 0, .6);
+    color:white;
+    font-size:9pt;
+    border:0px;
+    padding-inline:5px;
+    border-radius:3px;
+    display:flex;
 }

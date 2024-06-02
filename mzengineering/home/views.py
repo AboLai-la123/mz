@@ -18,6 +18,9 @@
 from django.shortcuts import render
 
 # Create your views here.
-def home(request):
-    context = {'isLoggedIn': "true" if request.user.is_authenticated else "false"}
+def home(request, page_name):
+    if request.method == "POST":
+        print(request.POST)
+        print(request.FILES)
+    context = {'isLoggedIn': "true" if request.user.is_authenticated else "false", "pageName": page_name}
     return render(request, "home.html", context)

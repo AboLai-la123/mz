@@ -18,6 +18,7 @@
     <meta name = "apple-mobile-web-app-status-bar-style" content = "#cccccc">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
   </head>
   {% include "style.html" %}
   <body>
@@ -52,10 +53,14 @@
       <div class="screen" id="viewSubscribers">
         {% include "components/subscribers/viewOrders.html" %}
       </div>
+      <div class="screen image-editor-screen" id="imageEditor">
+        {% include "components/screens/imageEditor.html" %}
+      </div>
       {% include "components/drawer.html" %}
     </div>
   </body>
   <div id="snackbar" class="snackbar"><p id="snackbarText"></p></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
   <script src="{% static 'script/jQuery.js' %}"></script>
   <script src="{% static 'script/script.js' %}"></script>
   
@@ -70,7 +75,7 @@ window.addEventListener('load', function() {
   var isLoggedIn = {{isLoggedIn}};
     setTimeout(() => {
       if(isLoggedIn){
-        screen = "mainScreen";
+        screen = "{{pageName}}";
       }else{
         screen = "loginScreen";
       }
