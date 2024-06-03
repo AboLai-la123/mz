@@ -1,10 +1,11 @@
 # myapp/urls.py
 
 from django.urls import path
-from .views import LoginView
+from . import views
 
 app_name = "API"
 
 urlpatterns = [
-    path('login', LoginView.as_view(), name='login'),
+    path('login', views.LoginView.as_view(), name='login'),
+    path('add-order', views.add_order, name="add-order"),
 ]

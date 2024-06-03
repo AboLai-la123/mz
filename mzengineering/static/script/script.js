@@ -1,4 +1,3 @@
-const screens = ['mainScreen'];
 
 function addItem(newItem) {
 	screens.push(newItem);
@@ -193,6 +192,7 @@ $(document).on("click","[data-for]",function(){
 	document.getElementById(this.dataset.for).click();
 });
 
+
 $(document).on("click","[data-dropdown]",function(){
 	// الحصول على الإحداثيات النسبية للحاوية
 	const element = $(this); // تحديد العنصر باستخدام jQuery
@@ -249,15 +249,23 @@ $(document).on("click", ".menu button", function () {
 
 let images;
 let imagesCount = 0;
+let pickType = "";
 
 function subscribers(){
 	images=undefined;
 	imagesCount = 0;
+	pickType = "";
 
 	$("#objects").empty();
 	$("#addresses").empty();
 	$("#violations").empty();
 }
+
+
+$(document).on("click","[data-pick]",function(){
+	pickType = this.dataset.name;
+	document.getElementById(this.dataset.pick).click();
+});
 
 
 $(document).on("change", "#image", function(event) {
@@ -293,10 +301,14 @@ $(document).on("change", "#image", function(event) {
     }
 });
 
+$(document).on("click","#imageStudioBackBtn", function(){
+	images.getCroppedCanvas();
+	navigateBack();
+});
+
 $('#cropButton').on('click', function() {
 	if (images) {
 		const canvas = images.getCroppedCanvas();
-		const container = document.createElement("div");
 		const croppedImageContainer = document.createElement("div");
 		imagesCount += 1;
 		croppedImageContainer.id = `image${imagesCount}`;
@@ -312,11 +324,35 @@ $('#cropButton').on('click', function() {
 		const croppedImage = document.createElement("img");
 		croppedImage.src = canvas.toDataURL();
 		croppedImage.classList.add('cropped-image');
+		navigator.geolocation.getCurrentPosition(function(position) {
+			// تم جلب الإحداثيات بنجاح
+			var latitude = position.coords.latitude;
+			var longitude = position.coords.longitude;
+			croppedImage.setAttribute('data-latitude', latitude);
+			croppedImage.setAttribute('data-longitude', longitude);
+
+			// يمكنك استخدام الإحداثيات هنا لعمل أي شيء آخر
+		  }, function(error) {
+			// في حالة فشل في جلب الإحداثيات
+			switch(error.code) {
+			  case error.PERMISSION_DENIED:
+				alert("لم يتم السماح بالوصول إلى خدمة الموقع من قبل المستخدم.")
+				break;
+			  case error.POSITION_UNAVAILABLE:
+				alert("الموقع غير متوفر.")
+				break;
+			  case error.TIMEOUT:
+				alert("انتهت مهلة الاستجابة لجلب الإحداثيات.")
+				break;
+			  case error.UNKNOWN_ERROR:
+				alert("حدث خطأ غير معروف.")
+				break;
+			}
+		  });
 
 		croppedImageContainer.appendChild(croppedImage);
-		$(container).append(button);
-		$(container).append(croppedImageContainer);
-		$("#objects").append(container);
+		$(croppedImageContainer).append(button);
+		$(`#${pickType}`).append(croppedImageContainer);
 
 		navigateScreen(screens.length === 2 ? screens[1] : screens[0], 'mainScreenManager');
 	}
@@ -343,12 +379,30 @@ $('#imageForm').on('submit', function(event) {
     event.preventDefault(); // منع إرسال النموذج بالطريقة التقليدية
 
     const formData = new FormData(this);
-    const croppedImages = document.querySelectorAll('.cropped-image');
 
-    croppedImages.forEach((croppedImage, index) => {
+
+    const objectsImages = document.querySelectorAll('#objects .cropped-image');
+    objectsImages.forEach((croppedImage, index) => {
         const blob = dataURItoBlob(croppedImage.src);
-        formData.append(`croppedImage${index + 1}`, blob, `croppedImage${index + 1}.png`);
+        formData.append(`objectImage${index + 1}`, blob, `objectImage${index + 1}.png`);
     });
+
+	const addressesImages = document.querySelectorAll('#addresses .cropped-image');
+    addressesImages.forEach((croppedImage, index) => {
+        const blob = dataURItoBlob(croppedImage.src);
+        formData.append(`addressImage${index + 1}`, blob, `addressImage${index + 1}.png`);
+        formData.append(`addressLatitude${index + 1}`, croppedImage.dataset.latitude);
+        formData.append(`addressLongitude${index + 1}`, croppedImage.dataset.longitude);
+    });
+
+	const violationsImages = document.querySelectorAll('#violations .cropped-image');
+    violationsImages.forEach((croppedImage, index) => {
+        const blob = dataURItoBlob(croppedImage.src);
+        formData.append(`violationImage${index + 1}`, blob, `violationImage${index + 1}.png`);
+        formData.append(`violationLatitude${index + 1}`, croppedImage.dataset.latitude);
+        formData.append(`violationLongitude${index + 1}`, croppedImage.dataset.longitude);
+    });
+
 
     $.ajax({
         url: this.action,
@@ -359,6 +413,10 @@ $('#imageForm').on('submit', function(event) {
         cache: false,
         processData: false,
         success: function(response) {
+			$("#order_number").val("");
+			$("#contractor").val("");
+			$("#distract").val("");
+			$("#order_type").val("عداد");
             console.log('Success:', response);
         },
         error: function(error) {

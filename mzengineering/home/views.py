@@ -16,9 +16,8 @@
 
 
 from django.shortcuts import render
-
 # Create your views here.
-def home(request, page_name):
+def home(request, page_name="mainScreen"):
     if request.method == "POST":
         print(request.POST)
         print(request.FILES)

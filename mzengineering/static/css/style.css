@@ -463,7 +463,7 @@ main{
 }
 .images-box > div, .images-box > div > div{
     width:100%;
-    height:120px;
+    height:125px;
     overflow: hidden;
 }
 .images-box > div > div{
@@ -473,8 +473,9 @@ main{
     align-items: center;
 }
 
-.images-box img{
-    min-width:100%;
+.cropped-image{
+    max-width:100%;
+    max-height:100px;
 }
 
 .images-box button{
