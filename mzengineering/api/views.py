@@ -1,14 +1,13 @@
-
+from django.shortcuts import redirect, render
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.contrib.auth import authenticate, login
-from .serializers import LoginSerializer
-from django.http import HttpResponseBadRequest
+from django.contrib.auth import authenticate, login, logout
+from django.http import HttpResponseBadRequest, JsonResponse
 
 from rest_framework.decorators import api_view
 from home.models import Order, ObjectImage, AddressImage, ViolationImage
-from .serializers import OrderSerializer, ObjectImageSerializer, AddressImageSerializer, ViolationImageSerializer
+from .serializers import ObjectImageSerializer, AddressImageSerializer, ViolationImageSerializer, LoginSerializer
 
 
 class LoginView(APIView):
@@ -19,62 +18,120 @@ class LoginView(APIView):
             login(request, user)
             return Response({
                 'message': '',
-                'screen': 'mainScreen',  # اسم الشاشة الجديدة بعد تسجيل الدخول الناجح
-                'screenManager': 'mainScreenManager'  # اسم مدير الشاشة (يمكن تعديله حسب احتياجاتك)
+                'screen': 'mainScreen',
+                'screenManager': 'mainScreenManager'
             }, status=status.HTTP_200_OK)
+        
+        # استخدم الرسالة الأولى فقط
+        message = None
+        for field_errors in serializer.errors.values():
+            if isinstance(field_errors, list) and field_errors:
+                message = field_errors[0]
+                break
+        
         return Response({
-            'message': serializer.errors.get('non_field_errors', ['بيانات تسجيل الدخول غير صحيحة.'])[0],
+            'message': message or 'بيانات تسجيل الدخول غير صحيحة.',
             'screen': '',
             'screenManager': ''
         }, status=status.HTTP_200_OK)
 
+@api_view(['GET'])
+def LogoutView(request):
+    logout(request)
+    return redirect("/")
 
 @api_view(['POST'])
-def add_order(request):
-    if request.user.is_authenticated:
-        order_data = request.data
-        order_data['user'] = request.user.pk
+def AddOrder(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"message": "يجب تسجيل الدخول للوصول إلى هذا المحتوى."}, status=401)
 
-        order_serializer = OrderSerializer(data=order_data)
-        if order_serializer.is_valid():
-            order = order_serializer.save()
+    order_data = request.data
+    order_data['user'] = request.user.pk
 
-            # معالجة وحفظ صور الأشياء (Objects)
-            objects_images_data = [(key, value) for key, value in order_data.items() if key.startswith('objectImage')]
-            for index, (key, value) in enumerate(objects_images_data, start=1):
-                image_data = {'order': order.id, 'image': value}
-                image_serializer = ObjectImageSerializer(data=image_data)
-                if image_serializer.is_valid():
-                    image_serializer.save()
-                else:
-                    print("1")
-                    return Response(image_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    message = None
 
-            # معالجة وحفظ صور العناوين (Addresses)
-            addresses_images_data = [(key, value) for key, value in order_data.items() if key.startswith('addressImage')]
-            for index, (key, value) in enumerate(addresses_images_data, start=1):
-                image_data = {'order': order.id, 'image': value, 'latitude': order_data[key.replace('addressImage', 'addressLatitude')], 'longitude': order_data[key.replace('addressImage', 'addressLongitude')]}
-                image_serializer = AddressImageSerializer(data=image_data)
-                if image_serializer.is_valid():
-                    image_serializer.save()
-                else:
-                    print("2")
-                    return Response(image_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    order_number = order_data.get('order_number')
+    contractor = order_data.get('contractor')
+    distract = order_data.get('distract')
+    materials = order_data.get('materials')
+    order_type = order_data.get('order_type', 'ملفات جاهزة')
 
-            # معالجة وحفظ صور المخالفات (Violations)
-            violations_images_data = [(key, value) for key, value in order_data.items() if key.startswith('violationImage')]
-            for index, (key, value) in enumerate(violations_images_data, start=1):
-                image_data = {'order': order.id, 'image': value, 'latitude': order_data[key.replace('violationImage', 'violationLatitude')], 'longitude': order_data[key.replace('violationImage', 'violationLongitude')]}
-                image_serializer = ViolationImageSerializer(data=image_data)
-                if image_serializer.is_valid():
-                    image_serializer.save()
-                else:
-                    print("3")
-                    return Response(image_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    if not order_number:
+        message = message or 'رقم الطلب مطلوب'
+    elif len(order_number) > 50:
+        message = message or 'رقم الطلب يجب ألا يتجاوز 50 حرفًا'
+    elif Order.objects.filter(order_number=order_number).exists():
+        message = message or 'رقم الطلب يجب أن يكون فريدًا'
 
-            return Response({'message': 'Order uploaded successfully'}, status=status.HTTP_201_CREATED)
+    if not message and len(contractor) > 100:
+        message = message or 'اسم المقاول يجب ألا يتجاوز 100 حرفًا'
+
+    if not message and len(distract) > 100:
+        message = message or 'الحي يجب ألا يتجاوز 100 حرفًا'
+    
+    
+    if len(materials) > 100:
+        message = message or 'المواد يجب ألا تتجاوز 100 حرفًا'
+
+    if not message and not order_type:
+        message = message or 'نوع الطلب مطلوب'
+    elif not message and order_type not in ['عداد', 'تنفيذ شبكة', 'طوارئ', 'إحلال', 'التعزيز', 'الجهد المتوسط', 'المشاريع', 'الملفات الجاهزة']:
+        message = message or 'يجب أن يكون عداد أو تنفيذ شبكة'
+
+    if message:
+        return JsonResponse({"message": message}, status=400)
+
+    try:
+        order = Order.objects.create(
+            user=request.user,
+            order_number=order_number,
+            contractor=contractor,
+            distract=distract,
+            materials=materials,
+            order_type=order_type
+        )
+    except ValidationError as e:
+        return JsonResponse({"message": str(e)}, status=400)
+
+    # معالجة وحفظ صور الأشياء (Objects)
+    objects_images_data = [(key, value) for key, value in order_data.items() if key.startswith('objectImage')]
+    for key, value in objects_images_data:
+        image_data = {'order': order.id, 'image': value}
+        image_serializer = ObjectImageSerializer(data=image_data)
+        if image_serializer.is_valid():
+            image_serializer.save()
         else:
-            print("4")
-            return Response(order_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    else:
-        return HttpResponseBadRequest("يجب تسجيل الدخول للوصول إلى هذا المحتوى.", status=401)
+            return JsonResponse({"message": str(image_serializer.errors)}, status=400)
+
+    # معالجة وحفظ صور العناوين (Addresses)
+    addresses_images_data = [(key, value) for key, value in order_data.items() if key.startswith('addressImage')]
+    for key, value in addresses_images_data:
+        image_data = {
+            'order': order.id,
+            'image': value,
+            'latitude': order_data.get(key.replace('addressImage', 'addressLatitude')),
+            'longitude': order_data.get(key.replace('addressImage', 'addressLongitude'))
+        }
+        image_serializer = AddressImageSerializer(data=image_data)
+        if image_serializer.is_valid():
+            image_serializer.save()
+        else:
+            return JsonResponse({"message": str(image_serializer.errors)}, status=400)
+
+    # معالجة وحفظ صور المخالفات (Violations)
+    violations_images_data = [(key, value) for key, value in order_data.items() if key.startswith('violationImage')]
+    for key, value in violations_images_data:
+        image_data = {
+            'order': order.id,
+            'image': value,
+            'notes': order_data.get(key.replace('violationImage', 'violationNote')),
+            'latitude': order_data.get(key.replace('violationImage', 'violationLatitude')),
+            'longitude': order_data.get(key.replace('violationImage', 'violationLongitude'))
+        }
+        image_serializer = ViolationImageSerializer(data=image_data)
+        if image_serializer.is_valid():
+            image_serializer.save()
+        else:
+            return JsonResponse({"message": str(image_serializer.errors)}, status=400)
+
+    return JsonResponse({'message': 'Order uploaded successfully'}, status=201)

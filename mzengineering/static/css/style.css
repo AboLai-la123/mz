@@ -38,10 +38,25 @@ button{
     transition-duration: .2s;
     box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
 }
+.snackbar *{
+    color:white;
+}
 
 
 
 /* -- Input -- */
+
+.textarea{
+    width:100%;
+    border-radius:5px;
+    border:2px solid #aaa;
+    padding:20px;
+    resize: none;
+    font-size:14pt;
+}
+.textarea:focus{
+    border-color:blue;
+}
 
 :root {
     --bg: #f5f5f5;
@@ -96,11 +111,12 @@ input:focus, input:active {
 .filled > input:hover {
     background-color: var(--bg-hover1);
 }
-.filled > input:valid ~ span::before, .filled > input[data-dropdown]:not(:placeholder-shown) ~ span::before, .filled > input[data-menu]:not(:placeholder-shown) ~ span::before {
+.filled > input:valid ~ span::before, .filled > input[data-dropdown]:not(:placeholder-shown) ~ span::before, .filled > input[data-menu]:not(:placeholder-shown) ~ span::before  
+{
     transform: translateY(-12px);
     font-size: 12px;
 }
-.filled > input:focus ~ span::before{
+.filled > input:focus ~ span::before {
     transform: translateY(-12px);
     font-size: 12px;
     color: blue;
@@ -119,29 +135,15 @@ input:focus, input:active {
     margin: auto;
     transition: 300ms;
 }
-.outlined > input {
-    border: 1px solid var(--bbc);
-    border-radius: 4px;
-}
-.outlined > input:focus {
-    box-shadow: 0 0 0 2px blue;
-    border-color: transparent;
-}
-.outlined > input:focus ~ span::before, .outlined > input:valid ~ span::before {
-    transform: translateY(-28px);
-    background-color: white;
-    padding: 2px 4px;
-}
-
-
-
-
 
 .container {
     margin: auto;
     display: grid;
-    width: 80%;
+    width: 100%;
 }
+
+
+/* -- Screens -- */
 
 
 .screen-manager{
@@ -454,19 +456,25 @@ main{
 
 /* -- Images -- */
 
-.images-box{
+.images-box, .violation-box{
     width:100%;
     display:grid;
     grid-template-columns: 20% 20% 20% 20%;
     gap:6.5%;
     margin-top:20px;
 }
-.images-box > div, .images-box > div > div{
+.violation-box textarea{
+    height:100px;
+}
+.violation-box{
+    grid-template-columns: 20% 74%;
+}
+.images-box > div, .images-box > div > div, .violation-box > div, .violation-box > div > div{
     width:100%;
     height:125px;
     overflow: hidden;
 }
-.images-box > div > div{
+.images-box > div > div, .violation-box > div > div{
     height:100px;
     display: flex;
     justify-content: center;
@@ -478,7 +486,7 @@ main{
     max-height:100px;
 }
 
-.images-box button{
+.images-box button, .violation-box button{
     background-color:rgba(0, 0, 0, .6);
     color:white;
     font-size:9pt;
@@ -486,4 +494,132 @@ main{
     padding-inline:5px;
     border-radius:3px;
     display:flex;
+}
+
+/* -- Loading -- */
+
+.loading-screen{
+    position: fixed;
+    left:0px;
+    right:0px;
+    top:0px;
+    bottom:0px;
+    background-color:rgba(255, 255, 255, .5);
+    transition-duration: .2s;
+    z-index:100;
+    display:none;
+    opacity:0;
+}
+
+.loader {
+    left: 50%;
+    top: 50%;
+    position: fixed;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+
+.loader #spinner {
+    box-sizing: border-box;
+    stroke: blue;
+    stroke-width: 3px;
+    -webkit-transform-origin: 50%;
+    transform-origin: 50%;
+    -webkit-animation: line 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite, rotate 1.6s linear infinite;
+    animation: line 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite, rotate 1.6s linear infinite;
+}
+
+@-webkit-keyframes rotate {
+    from {
+        -webkit-transform: rotate(0);
+        transform: rotate(0);
+    }
+    to {
+        -webkit-transform: rotate(450deg);
+        transform: rotate(450deg);
+    }
+}
+
+@keyframes rotate {
+    from {
+        -webkit-transform: rotate(0);
+        transform: rotate(0);
+    }
+    to {
+        -webkit-transform: rotate(450deg);
+        transform: rotate(450deg);
+    }
+}
+
+@-webkit-keyframes line {
+    0% {
+        stroke-dasharray: 2, 85.964;
+        -webkit-transform: rotate(0);
+        transform: rotate(0);
+    }
+    50% {
+        stroke-dasharray: 65.973, 21.9911;
+        stroke-dashoffset: 0;
+    }
+    100% {
+        stroke-dasharray: 2, 85.964;
+        stroke-dashoffset: -65.973;
+        -webkit-transform: rotate(90deg);
+        transform: rotate(90deg);
+    }
+}
+
+@keyframes line {
+    0% {
+        stroke-dasharray: 2, 85.964;
+        -webkit-transform: rotate(0);
+        transform: rotate(0);
+    }
+    50% {
+        stroke-dasharray: 65.973, 21.9911;
+        stroke-dashoffset: 0;
+    }
+    100% {
+        stroke-dasharray: 2, 85.964;
+        stroke-dashoffset: -65.973;
+        -webkit-transform: rotate(90deg);
+        transform: rotate(90deg);
+    }
+}
+
+
+/* -- Order details -- */
+
+.data{
+    width:80%;
+    background-color:white;
+    border-radius:10px;
+    padding:10px;
+    font-size:14pt;
+    margin: auto;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    direction:rtl;
+    margin-bottom:20px;
+    padding-inline:20px;
+}
+
+.data p{
+    width:100%;
+}
+
+.data p:nth-child(1){
+    color: #aaa;
+}
+
+.data p:nth-child(2){
+    text-align:left;
+}
+
+.order-image{
+    width:80%;
+    margin-block:20px;
+    margin:auto;
+    display:block;
 }

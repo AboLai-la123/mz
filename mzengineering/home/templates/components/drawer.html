@@ -1,12 +1,12 @@
 <div class="drawer" id="drawer">
     <div class="drawer-items">
-      <button data-title="الصفحة الرئيسية" id="mainBtn" onclick="navigateDrawer('main');" class="selected">الصفحة الرئيسية</button>
-      <button data-title="المشتركين" id="subscribersBtn" onclick="navigateDrawer('subscribers');">المشتركين</button>
-      <button data-title="العمليات والصيانة" id="operationsBtn" >العمليات والصيانة</button>
-      <button data-title="المشاريع" id="projectsBtn" >المشاريع</button>
-      <button data-title="الملفات الجاهزة" id="readyFilesBtn" >الملفات الجاهزة</button>
-      <button data-title="الضبط" id="settingsBtn" >الضبط</button>
-      <button style="color:red">تسجيل الخروج</button>
+      <button data-title="الصفحة الرئيسية" id="mainBtn" onclick="navigateDrawer('main',this);" class="selected">الصفحة الرئيسية</button>
+      <button data-title="المشتركين" id="subscribersBtn" onclick="navigateDrawer('orders',this);">المشتركين</button>
+      <button data-title="العمليات والصيانة" id="operationsBtn" onclick="navigateDrawer('orders',this);">العمليات والصيانة</button>
+      <button data-title="المشاريع" id="projectsBtn" onclick="navigateDrawer('orders',this);">المشاريع</button>
+      <button data-title="الملفات الجاهزة" id="readyFilesBtn" onclick="navigateDrawer('orders',this);">الملفات الجاهزة</button>
+      <button data-title="الضبط" id="settingsBtn" onclick="navigateDrawer('settings',this);">الضبط</button>
+      <button style="color:red" onclick="location.href='/api/logout';">تسجيل الخروج</button>
     </div>
   </div>
   <div class="closer" id="closer"></div>

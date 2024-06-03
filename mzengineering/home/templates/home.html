@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css">
   </head>
   {% include "style.html" %}
   <body>
@@ -47,11 +48,14 @@
       <div class="screen" id="searchScreen">
         {% include "components/search.html" %}
       </div>
-      <div class="screen" id="addSubscribersOrder">
-        {% include "components/subscribers/addOrder.html" %}
+      <div class="screen" id="addOrder">
+        {% include "components/orders/addOrder.html" %}
       </div>
-      <div class="screen" id="viewSubscribers">
-        {% include "components/subscribers/viewOrders.html" %}
+      <div class="screen" id="viewOrders">
+        {% include "components/orders/viewOrders.html" %}
+      </div>
+      <div class="screen" id="orderDetails">
+        {% include "components/orders/orderDetails.html" %}
       </div>
       <div class="screen image-editor-screen" id="imageEditor">
         {% include "components/screens/imageEditor.html" %}
@@ -59,14 +63,20 @@
       {% include "components/drawer.html" %}
     </div>
   </body>
+  <div class="loading-screen">
+    <div class="loader">
+      <svg viewBox="0 0 32 32" width="42" height="42">
+          <circle id="spinner" cx="16" cy="16" r="14" fill="none"></circle>
+        </svg>
+    </div>
+  </div>
   <div id="snackbar" class="snackbar"><p id="snackbarText"></p></div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
   <script src="{% static 'script/jQuery.js' %}"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
   <script>screens=['{{pageName}}']</script>
   <script src="{% static 'script/script.js' %}"></script>
-  
   <script>
-    
   document.addEventListener('DOMContentLoaded', function() {
   document.body.style.display = 'none';
 });

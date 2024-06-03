@@ -13,10 +13,10 @@
     <div id="main" class="visible-screen">
       {% include 'components/homeScreens/main.html' %}
     </div>
-    <div id="subscribers">
+    <div id="orders">
       <div class="center-container">
-        <button onclick="navigateScreen('viewSubscribers','mainScreenManager')" class="outline" style="margin-right:20px;"><span class="material-symbols-sharp">visibility</span>عرض طلب</button>
-        <button onclick="navigateScreen('addSubscribersOrder','mainScreenManager')" class="outline"><span class="material-symbols-sharp">add</span>إضافة طلب</button>
+        <button id="viewOrderBtn" class="outline" style="margin-right:20px;"><span class="material-symbols-sharp">visibility</span>عرض طلب</button>
+        <button id="addOrderBtn" class="outline"><span class="material-symbols-sharp">add</span>إضافة طلب</button>
       </div>
     </div>
   </main>

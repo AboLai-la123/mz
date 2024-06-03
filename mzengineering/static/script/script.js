@@ -8,11 +8,13 @@ function addItem(newItem) {
 }
 
 const navigateScreen = (screen, screenManager, back=false) => {
-	openNavDrawer(false);
 	if(document.querySelector(`#${screenManager} .opened-screen`).id != screen){
+
 		if(screen != "imageEditor"){
-			history.pushState(null, null, `/${screen}`);
+			history.replaceState(null, null, `/${screen}`);
 			addItem(screen);
+			openNavDrawer(false);
+
 		}
 		const openedScreen = $(`#${screenManager} .opened-screen`);
 		if(!back){
@@ -30,15 +32,15 @@ const navigateScreen = (screen, screenManager, back=false) => {
 }
 
 const navigateBack = () => {
-	navigateScreen(screens[0],'mainScreenManager');
+	navigateScreen(screens[0],'mainScreenManager',true);
 }
 
-const navigateDrawer = (screen) => {
+function navigateDrawer(screen,instance) {
 	openNavDrawer(false);
 	$(".visible-screen").removeClass('visible-screen');
 	$(`#${screen}`).addClass('visible-screen');
 	$(`.drawer .selected`).removeClass("selected");
-	const btn = $(`#${screen}Btn`);
+	const btn = $(`#${instance.id}`);
 	btn.addClass("selected");
 	$('#navHeader').text(btn.data('title'));
 	if(typeof window[screen] === "function") {
@@ -236,7 +238,8 @@ $(document).on("focusout", "[data-menu], [data-dropdown]", function () {
 
 $(document).on("click", ".menu button", function () {
 	const buttonText = $(this).text();
-	const dropdownInput = $(this).closest('.menu').prev('label').find('[data-dropdown]');
+	console.log(buttonText)
+	const dropdownInput = $("#order_type");
 	dropdownInput.val(buttonText);
   
 	// إغلاق القائمة بعد تحديد الخيار
@@ -251,14 +254,22 @@ let images;
 let imagesCount = 0;
 let pickType = "";
 
-function subscribers(){
-	images=undefined;
+function orders(){
 	imagesCount = 0;
 	pickType = "";
 
 	$("#objects").empty();
 	$("#addresses").empty();
 	$("#violations").empty();
+	const img = document.getElementById('selectedImage');
+	if (images) {
+		console.log("working")
+		images.destroy();
+		images = null;
+		img.style.display = 'none'; // Hide the image
+		img.src = ''; // Clear the src attribute
+	}
+	images=undefined;
 }
 
 
@@ -270,92 +281,109 @@ $(document).on("click","[data-pick]",function(){
 
 $(document).on("change", "#image", function(event) {
     navigateScreen('imageEditor', 'mainScreenManager');
-    const files = event.target.files;
+	showLoading(true);
 
-    for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = document.getElementById('selectedImage');
-                img.src = e.target.result;
-                if (images) {
-                    images.destroy();
-                }
+	setTimeout(() => {
+		const files = event.target.files;
 
-                images = new Cropper(img, {
-                    aspectRatio: NaN, // Allow free aspect ratio
-                    viewMode: 1,
-                    movable: true,
-                    zoomable: true,
-                    rotatable: true,
-                    scalable: true,
-                    autoCropArea: 0.5,
-                    responsive: true,
-                });
+		for (let i = 0; i < files.length; i++) {
+			const file = files[i];
+			if (file) {
+				const reader = new FileReader();
+				reader.onload = function(e) {
+					const img = document.getElementById('selectedImage');
+					img.src = e.target.result;
+					if (images) {
+						images.destroy();
+					}
 
-                event.target.value = '';
-            };
-            reader.readAsDataURL(file);
-        }
-    }
+					images = new Cropper(img, {
+						aspectRatio: NaN, // Allow free aspect ratio
+						viewMode: 1,
+						movable: true,
+						zoomable: true,
+						rotatable: true,
+						scalable: true,
+						autoCropArea: 0.5,
+						responsive: true,
+					});
+
+					event.target.value = '';
+				};
+				reader.readAsDataURL(file);
+			}
+		}
+		showLoading(false);
+	}, 200);
 });
 
 $(document).on("click","#imageStudioBackBtn", function(){
-	images.getCroppedCanvas();
-	navigateBack();
+	images.destroy();
+	navigateScreen('addOrder', 'mainScreenManager');
 });
 
 $('#cropButton').on('click', function() {
-	if (images) {
-		const canvas = images.getCroppedCanvas();
-		const croppedImageContainer = document.createElement("div");
-		imagesCount += 1;
-		croppedImageContainer.id = `image${imagesCount}`;
-
-		const button = document.createElement("button");
-		button.textContent = "حذف";
-		button.type = "button"; // لمنع إرسال النموذج عند الضغط على زر الحذف
-		button.dataset.delete = imagesCount;
-		button.addEventListener('click', function() {
-			deleteImage(parseInt(this.dataset.delete));
-		});
-
-		const croppedImage = document.createElement("img");
-		croppedImage.src = canvas.toDataURL();
-		croppedImage.classList.add('cropped-image');
-		navigator.geolocation.getCurrentPosition(function(position) {
-			// تم جلب الإحداثيات بنجاح
-			var latitude = position.coords.latitude;
-			var longitude = position.coords.longitude;
-			croppedImage.setAttribute('data-latitude', latitude);
-			croppedImage.setAttribute('data-longitude', longitude);
-
-			// يمكنك استخدام الإحداثيات هنا لعمل أي شيء آخر
-		  }, function(error) {
-			// في حالة فشل في جلب الإحداثيات
-			switch(error.code) {
-			  case error.PERMISSION_DENIED:
-				alert("لم يتم السماح بالوصول إلى خدمة الموقع من قبل المستخدم.")
-				break;
-			  case error.POSITION_UNAVAILABLE:
-				alert("الموقع غير متوفر.")
-				break;
-			  case error.TIMEOUT:
-				alert("انتهت مهلة الاستجابة لجلب الإحداثيات.")
-				break;
-			  case error.UNKNOWN_ERROR:
-				alert("حدث خطأ غير معروف.")
-				break;
+	showLoading(true);
+	setTimeout(() => {
+		if (images) {
+			const canvas = images.getCroppedCanvas();
+			const croppedImageContainer = document.createElement("div");
+			imagesCount += 1;
+			croppedImageContainer.id = `image${imagesCount}`;
+	
+			const button = document.createElement("button");
+			button.textContent = "حذف";
+			button.type = "button"; // لمنع إرسال النموذج عند الضغط على زر الحذف
+			button.dataset.delete = imagesCount;
+			button.addEventListener('click', function() {
+				deleteImage(parseInt(this.dataset.delete));
+			});
+	
+			const croppedImage = document.createElement("img");
+			croppedImage.src = canvas.toDataURL();
+			croppedImage.classList.add('cropped-image');
+			navigator.geolocation.getCurrentPosition(function(position) {
+				// تم جلب الإحداثيات بنجاح
+				var latitude = position.coords.latitude;
+				var longitude = position.coords.longitude;
+				croppedImage.setAttribute('data-latitude', latitude);
+				croppedImage.setAttribute('data-longitude', longitude);
+				croppedImage.setAttribute('data-index', imagesCount);
+	
+				// يمكنك استخدام الإحداثيات هنا لعمل أي شيء آخر
+			  }, function(error) {
+				// في حالة فشل في جلب الإحداثيات
+				switch(error.code) {
+				  case error.PERMISSION_DENIED:
+					alert("لم يتم السماح بالوصول إلى خدمة الموقع من قبل المستخدم.")
+					break;
+				  case error.POSITION_UNAVAILABLE:
+					alert("الموقع غير متوفر.")
+					break;
+				  case error.TIMEOUT:
+					alert("انتهت مهلة الاستجابة لجلب الإحداثيات.")
+					break;
+				  case error.UNKNOWN_ERROR:
+					alert("حدث خطأ غير معروف.")
+					break;
+				}
+			  });
+	
+			croppedImageContainer.appendChild(croppedImage);
+			$(croppedImageContainer).append(button);
+			$(`#${pickType}`).append(croppedImageContainer);
+			if(pickType == "violations"){
+				const textarea = document.createElement("textarea");
+				textarea.classList.add("textarea");
+				textarea.placeholder = "وصف المخالفة";
+				textarea.id = `violationNote${imagesCount}`;
+				$(`#${pickType}`).append(textarea);
 			}
-		  });
-
-		croppedImageContainer.appendChild(croppedImage);
-		$(croppedImageContainer).append(button);
-		$(`#${pickType}`).append(croppedImageContainer);
-
-		navigateScreen(screens.length === 2 ? screens[1] : screens[0], 'mainScreenManager');
-	}
+	
+			navigateScreen('addOrder','mainScreenManager');
+			showLoading(false);
+		}
+	},200);
 });
 
 // دالة لحذف صورة محددة من القائمة
@@ -401,6 +429,7 @@ $('#imageForm').on('submit', function(event) {
         formData.append(`violationImage${index + 1}`, blob, `violationImage${index + 1}.png`);
         formData.append(`violationLatitude${index + 1}`, croppedImage.dataset.latitude);
         formData.append(`violationLongitude${index + 1}`, croppedImage.dataset.longitude);
+        formData.append(`violationNote${index + 1}`, $(`#violationNote${croppedImage.dataset.index}`).val());
     });
 
 
@@ -416,16 +445,28 @@ $('#imageForm').on('submit', function(event) {
 			$("#order_number").val("");
 			$("#contractor").val("");
 			$("#distract").val("");
+			$("#materials").val("");
 			$("#order_type").val("عداد");
-			alert("success")
-            // console.log('Success:', response);
+			snackBar("تم حفظ بيانات الطلب بنجاح");
+			orders();
+			getData("home","homeScreenList");
+			navigateScreen('mainScreen','mainScreenManager');
         },
         error: function(error) {
-			document.write(error)
-            // console.log('Error:', error);
+			snackBar(error.responseJSON.message);
         }
     });
 });
+
+const showLoading = (show) => {
+	if(show){
+		$(".loading-screen").css({display:"block"});
+		setTimeout(() => $(".loading-screen").css({opacity:1}), 1);
+	}else{
+		$(".loading-screen").css({opacity:0});
+		setTimeout(() => $(".loading-screen").removeAttr("style"), 200);
+	}
+}
 
 function dataURItoBlob(dataURI) {
     const byteString = atob(dataURI.split(',')[1]);
@@ -439,3 +480,97 @@ function dataURItoBlob(dataURI) {
 
     return new Blob([ab], { type: mimeString });
 }
+
+$(document).on("click","#addOrderBtn",function(){
+	navHeader = $("#navHeader").text();
+	$("#workTypeContainer, #materialsContainer, #inputsContainer").removeAttr("style");
+	$("#order_type_menu").empty();
+
+	$("#contractor").attr("required", "");
+	$("#distract").attr("required", "");
+	if(navHeader == "المشتركين") {
+		$("#materialsContainer").css({display:"none"});
+		$("#order_type").val('عداد');
+		$("#order_type_menu").append(`<button type="button">عداد</button><button type="button">تنفيذ شبكة</button>`);
+	}else if(navHeader == "العمليات والصيانة") {
+		$("#order_type").val('طوارئ');
+		$("#order_type_menu").append(`<button type="button">طوارئ</button><button type="button">إحلال</button><button type="button">التعزيز</button><button type="button">الجهد المتوسط</button>`);
+	}else if(navHeader == "المشاريع"){
+		$("#materialsContainer").css({display:"none"});
+		$("#workTypeContainer").css({display:"none"});
+		$("#order_type").val('المشاريع');
+	}
+	else if(navHeader == "الملفات الجاهزة"){
+		$("#contractor").removeAttr("required");
+		$("#distract").removeAttr("required");
+		$("#inputsContainer").css({display:"none"});
+		$("#order_type").val('الملفات الجاهزة');
+	}
+	navigateScreen('addOrder','mainScreenManager');
+});
+
+
+const getData = (table, listID) => {
+	showLoading(true);
+	$(`#${listID}`).empty();
+	$.ajax({
+        url: location.href+`?${table}`,
+        type: 'GET',
+        success: function(res) {
+            res.data.forEach(d => {
+				$(`#${listID}`).append(`<p class='month'>${d[0]}</p>`);
+				d[1].forEach(w => {
+					$(`#${listID}`).append(`<button class="item" data-order = "${w[3]}">
+					<p>رقم الطلب : ${w[0]}</p>
+					<p>نوع الطلب : ${w[1]}</p>
+					<p>${w[2]}</p>
+				</button>
+				<br>`);
+				});
+			});
+			showLoading(false);
+        }
+    });
+}
+
+$(document).on("click","#viewOrderBtn",function(){
+	navigateScreen('viewOrders','mainScreenManager');
+	if($("#navHeader").text() == "المشتركين"){
+		getData('subscribers','orderScreenList');
+	}
+	else if($("#navHeader").text() == "العمليات والصيانة"){
+		getData('operations','orderScreenList');
+	}
+	else if($("#navHeader").text() == "المشاريع"){
+		getData('projects','orderScreenList');
+	}
+	else if($("#navHeader").text() == "الملفات الجاهزة"){
+		getData('readyFiles','orderScreenList');
+	}
+});
+
+$(document).on("click","[data-order]",function(){
+	this_el = this;
+	showLoading(true);
+	$.ajax({
+        url: location.href+`?order=${this_el.dataset.order}`,
+        type: 'GET',
+        success: function(res) {
+			$("#orderDetailsContainer").empty();
+			$("#orderDetailsContainer").append(`<div class="data"><p class="key">رقم الطلب</p><p class="value">${res.data[0]}</p></div>`);
+			if(res.data[1] != null) $("#orderDetailsContainer").append(`<div class="data"><p class="key">المقاول</p><p class="value">${res.data[1]}</p></div>`);
+			if(res.data[2] != null) $("#orderDetailsContainer").append(`<div class="data"><p class="key">الحي</p><p class="value">${res.data[2]}</p></div>`);
+			if(res.data[3] != null && res.data[3] != "") $("#orderDetailsContainer").append(`<div class="data"><p class="key">المواد</p><p class="value">${res.data[3]}</p></div>`);
+			$("#orderDetailsContainer").append(`<div class="data"><p class="key">نوع الطلب</p><p class="value">${res.data[4]}</p></div>`);
+
+			res.data[5].forEach(url => $("#orderDetailsContainer").append(`<a data-fancybox="gallery" href="${url}" data-caption="نموذج"><img class="order-image" src="${url}"></a>`));
+			res.data[6].forEach(url => $("#orderDetailsContainer").append(`<a data-fancybox="gallery" href="${url}" data-caption="صور الموقع"><img class="order-image" src="${url}"></a>`));
+			res.data[7].forEach(url => $("#orderDetailsContainer").append(`<a data-fancybox="gallery" href="${url[0]}" data-caption="مخالفات السلامة"><img class="order-image" src="${url[0]}"></a>`));
+
+			setTimeout(function(){
+				navigateScreen("orderDetails","mainScreenManager");
+			},1);
+			showLoading(false);
+        }
+    });
+});

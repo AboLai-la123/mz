@@ -7,5 +7,6 @@ app_name = "API"
 
 urlpatterns = [
     path('login', views.LoginView.as_view(), name='login'),
-    path('add-order', views.add_order, name="add-order"),
+    path('add-order', views.AddOrder, name="add-order"),
+    path('logout', views.LogoutView),
 ]

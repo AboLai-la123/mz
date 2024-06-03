@@ -1,56 +1,15 @@
-<div class="main-list">
+<div class="main-list" id="homeScreenList">
     <div class="items">
-      <p class="month">مايو</p>
-      <button class="item">
-        <p>رقم الطلب: 1</p>
-        <p>نوع الطلب: تنفيذ شبكة</p>
-        <p>الجمعة 31</p>
-      </button>
-      <button class="item">
-        <p>رقم الطلب: 1</p>
-        <p>نوع الطلب: تنفيذ شبكة</p>
-        <p>الجمعة 31</p>
-      </button>
-      <button class="item">
-        <p>رقم الطلب: 1</p>
-        <p>نوع الطلب: تنفيذ شبكة</p>
-        <p>الجمعة 31</p>
-      </button>
-    </div>
-    <div class="items">
-      <p class="month">مايو</p>
-      <button class="item">
-        <p>رقم الطلب: 1</p>
-        <p>نوع الطلب: تنفيذ شبكة</p>
-        <p>الجمعة 31</p>
-      </button>
-      <button class="item">
-        <p>رقم الطلب: 1</p>
-        <p>نوع الطلب: تنفيذ شبكة</p>
-        <p>الجمعة 31</p>
-      </button>
-      <button class="item">
-        <p>رقم الطلب: 1</p>
-        <p>نوع الطلب: تنفيذ شبكة</p>
-        <p>الجمعة 31</p>
-      </button>
-    </div>
-    <div class="items">
-      <p class="month">مايو</p>
-      <button class="item">
-        <p>رقم الطلب: 1</p>
-        <p>نوع الطلب: تنفيذ شبكة</p>
-        <p>الجمعة 31</p>
-      </button>
-      <button class="item">
-        <p>رقم الطلب: 1</p>
-        <p>نوع الطلب: تنفيذ شبكة</p>
-        <p>الجمعة 31</p>
-      </button>
-      <button class="item">
-        <p>رقم الطلب: 1</p>
-        <p>نوع الطلب: تنفيذ شبكة</p>
-        <p>الجمعة 31</p>
-      </button>
+      {% for d in data %}
+  <p class="month">{{d.0}}</p>
+  {% for w in d.1 %}
+  <button class="item" data-order = "{{w.3}}">
+      <p>رقم الطلب : {{w.0}}</p>
+      <p>نوع الطلب : {{w.1}}</p>
+      <p>{{w.2}}</p>
+  </button>
+  <br>
+  {% endfor %}
+  {% endfor %}
     </div>
   </div>

@@ -12,14 +12,23 @@ from bidi.algorithm import get_display
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     order_number = models.CharField(max_length=50)
-    contractor = models.CharField(max_length=100)
-    distract = models.CharField(max_length=100)
-    materials = models.CharField(max_length=100, null="", blank="")
+    contractor = models.CharField(max_length=100, null=True, blank=True)
+    distract = models.CharField(max_length=100, null=True, blank=True)
+    materials = models.CharField(max_length=100, null=True, blank=True)
+    date_time = models.DateTimeField(auto_now_add=True)
     ORDER_TYPES = [
         ('عداد', 'عداد'),
         ('تنفيذ شبكة', 'تنفيذ شبكة'),
+        ('طوارئ', 'طوارئ'),
+        ('إحلال', 'إحلال'),
+        ('التعزيز', 'التعزيز'),
+        ('الجهد المتوسط', 'الجهد المتوسط'),
+        ('المشاريع', 'المشاريع'),
+        ('الملفات الجاهزة', 'الملفات الجاهزة'),
     ]
     order_type = models.CharField(max_length=50, choices=ORDER_TYPES)
+
+    archived = models.BooleanField(default=False)
 
 class ObjectImage(models.Model):
     order = models.ForeignKey(Order, related_name='object_images', on_delete=models.CASCADE)
@@ -34,6 +43,7 @@ class AddressImage(models.Model):
 class ViolationImage(models.Model):
     order = models.ForeignKey(Order, related_name='violation_images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='violation_images')
+    notes = models.TextField(null=False, blank=False)
     latitude = models.CharField(max_length=20)
     longitude = models.CharField(max_length=20)
 
@@ -51,7 +61,7 @@ def process_image(image, instance):
     # تغيير حجم الصورة
     max_width = 1000
     max_height = 1500
-    image.thumbnail((max_width, max_height), Image.ANTIALIAS)
+    image.thumbnail((max_width, max_height), Image.LANCZOS)
 
     # تحميل الشعار
     if os.path.expanduser("~") == "C:\\Users\\H1720":
@@ -66,7 +76,7 @@ def process_image(image, instance):
     logo_width = int(image.width * 0.60)
     logo_ratio = logo_width / float(logo.width)
     logo_height = int((float(logo.height) * float(logo_ratio)))
-    logo = logo.resize((logo_width, logo_height), Image.ANTIALIAS)
+    logo = logo.resize((logo_width, logo_height), Image.LANCZOS)
 
     # إعدادات النص
     texts = [f"{instance.order.user.first_name} {instance.order.user.last_name}", instance.order.distract, instance.order.contractor, f'{instance.latitude}N {instance.longitude}E']
@@ -87,7 +97,8 @@ def process_image(image, instance):
     y_offset = image.height - margin
 
     for text in reversed(bidi_texts):
-        text_width, text_height = draw.textsize(text, font=font)
+        text_bbox = draw.textbbox((0, 0), text, font=font)
+        text_width, text_height = text_bbox[2] - text_bbox[0], text_bbox[3] - text_bbox[1]
         x = image.width - text_width - margin
         y_offset -= text_height
         # رسم الظل
