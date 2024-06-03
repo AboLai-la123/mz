@@ -417,10 +417,12 @@ $('#imageForm').on('submit', function(event) {
 			$("#contractor").val("");
 			$("#distract").val("");
 			$("#order_type").val("عداد");
-            console.log('Success:', response);
+			alert("success")
+            // console.log('Success:', response);
         },
         error: function(error) {
-            console.log('Error:', error);
+			document.write(error)
+            // console.log('Error:', error);
         }
     });
 });
