@@ -50,6 +50,7 @@
             {% csrf_token %}
             <br>
             <br>
+            <input type="hidden" name="pk" id="pk">
             <label for="" class="filled">
               <input type="text" value="" maxlength="50" name="order_number" id="order_number" required>
               <span data-label="رقم الطلب"></span>
@@ -110,9 +111,9 @@
             <hr>
             <br>
             
-            <button class="primary">حفظ</button>
+            <button class="primary" id="saveOrder">حفظ</button>
             <br>
-            <button class="outline">حفظ وأرشفة</button>
+            <button class="outline" id="archiveOrder">حفظ وأرشفة</button>
             <br>
           </form>
         </div>

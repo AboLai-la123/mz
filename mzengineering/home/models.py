@@ -27,6 +27,7 @@ class Order(models.Model):
         ('الملفات الجاهزة', 'الملفات الجاهزة'),
     ]
     order_type = models.CharField(max_length=50, choices=ORDER_TYPES)
+    pdf_file_name = models.CharField(max_length=100,null=True,blank=True)
 
     archived = models.BooleanField(default=False)
 

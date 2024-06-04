@@ -1,10 +1,10 @@
 {% load static %}
 
 <div class="center-container">
-    <form method = "POST" action = "/api/login" data-form>
+    <form method = "POST" action = "/api/login" id="loginForm" data-form>
       {% csrf_token %}
       <img src="{% static 'images/logo.png' %}" width="75%" class="center" style="margin-block:30px;">
-      <div class="container">
+      <div class="container" style="width:80%;">
         <label for="" class="filled">
           <input type="text" value="" name="jobNumber" id="jobNumber" required>
           <span data-label="الرقم الوظيفي"></span>
@@ -12,7 +12,7 @@
       </div>
       <br>
       <br>
-      <div class="container">
+      <div class="container" style="width:80%;">
         <label for="" class="filled">
           <input type="password" value="" name="password" id="password" required>
           <span data-label="كلمة المرور"></span>

@@ -36,7 +36,7 @@
     <div class="screen-manager" id="mainScreenManager">
       <div class="screen opened-screen" id="splash">
         <div class="center-container">
-          <img src="{% static 'images/logo.png' %}" width = "250">
+          <img loading="lazy" src="{% static 'images/logo.png' %}" width = "250">
         </div>
       </div>
       <div class="screen" id="loginScreen">
@@ -76,6 +76,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
   <script>screens=['{{pageName}}']</script>
   <script src="{% static 'script/script.js' %}"></script>
+
   <script>
   document.addEventListener('DOMContentLoaded', function() {
   document.body.style.display = 'none';

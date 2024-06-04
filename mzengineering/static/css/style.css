@@ -21,6 +21,9 @@ button{
     cursor:pointer;
 }
 
+a{
+    text-decoration: none;
+}
 
 .snackbar{
     position:fixed;
@@ -162,7 +165,7 @@ input:focus, input:active {
     overflow:auto;
     position: absolute;
     opacity: 0;
-    background-color:white;
+    background-color:#eee;
     display:none;
 }
 
@@ -302,7 +305,6 @@ main{
     right:0px;
     bottom:0px;
     left:0px;
-    background-color:#eeeeee;
 }
 
 
@@ -619,7 +621,25 @@ main{
 
 .order-image{
     width:80%;
-    margin-block:20px;
     margin:auto;
     display:block;
+}
+
+.order-img-header{
+    font-size:20pt;
+    width:80%;
+    margin: auto;
+    text-align:right;
+}
+
+#orderDetailsContainer > p{
+    width:80%;
+    margin:auto;
+    margin-top:10px;
+    text-align:right;
+    direction: rtl;
+}
+
+#orderDetailsContainer > p span{
+    color:#555;
 }

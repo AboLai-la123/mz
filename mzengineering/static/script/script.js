@@ -1,10 +1,6 @@
 
 function addItem(newItem) {
 	screens.push(newItem);
-
-    if (screens.length > 2) {
-        screens.shift();
-    }
 }
 
 const navigateScreen = (screen, screenManager, back=false) => {
@@ -19,24 +15,38 @@ const navigateScreen = (screen, screenManager, back=false) => {
 		const openedScreen = $(`#${screenManager} .opened-screen`);
 		if(!back){
 			$(`#${screen}`).css({display:"block"});
+		}else{
+			$(`#${screen}`).css({display:"block"});
+			$(`#${screen}`).css({transform:"scale(1.2)"});
+			$(`#${screen}`).css({marginTop:"-50px"});
 		}
 		openedScreen.css({zIndex:1});
 		setTimeout(() => {
 			$(`#${screen}`).addClass("opened-screen");
 			$(`#${screen}`).removeAttr('style');
-		}, 1)
+		}, 10);
 		setTimeout(() => {
 			openedScreen.removeClass("opened-screen");
+			openedScreen.removeClass("backed-screen");
 		}, 200);
 	}
 }
 
+
 const navigateBack = () => {
-	navigateScreen(screens[0],'mainScreenManager',true);
+	backScreen = screens.length==1?screens[0]:screens[screens.length-1];
+	if(backScreen != screen){
+		navigateScreen(backScreen,'mainScreenManager',true);
+		screens.pop();
+	}
 }
 
 function navigateDrawer(screen,instance) {
 	openNavDrawer(false);
+	$("#homeScreenList").empty();
+	$("#homeScreenList").empty();
+	$("#orderDetailsContainer").empty();
+	$("#orderScreenList").empty();
 	$(".visible-screen").removeClass('visible-screen');
 	$(`#${screen}`).addClass('visible-screen');
 	$(`.drawer .selected`).removeClass("selected");
@@ -46,6 +56,8 @@ function navigateDrawer(screen,instance) {
 	if(typeof window[screen] === "function") {
 		window[screen]();
 	}
+	$('#navHeader').text();
+	viewData();
 }
 
 const navigateStepper = (stepperManager, next) => {
@@ -164,7 +176,7 @@ function otherSnackbar(title){
 $(document).on("submit", "form[data-form]", function(e) {
     e.preventDefault();
     var thisElement = $(this);
-    thisElement.css("opacity", ".8")
+	showLoading(true);
     var formData = new FormData(this);
 
     $.ajax({
@@ -176,14 +188,16 @@ $(document).on("submit", "form[data-form]", function(e) {
         cache: false,
         processData: false,
         success: function(res) {
-            thisElement.css("opacity", "");
+            showLoading(false);
             if (res.message === "") {
-                navigateScreen(res.screen, res.screenManager);
+				if(thisElement.attr("id") == "loginForm") location.href="/mainScreen";
+				else navigateScreen(res.screen, res.screenManager);
             } else {
                 snackBar(res.message);
             }
         },
         error: function() {
+			showLoading(false);
             snackBar("حدث خطأ أثناء الحفظ!");
         }
     });
@@ -218,7 +232,7 @@ $(document).on("click","[data-dropdown]",function(){
 			menu.addClass("opened");
 		},1);
 	} else {
-		console.error('لم يتم العثور على العنصر الأب ذو الـ class "stepper".');
+		alert('لم يتم العثور على العنصر الأب ذو الـ class "stepper".');
 	}
 });
 
@@ -238,7 +252,6 @@ $(document).on("focusout", "[data-menu], [data-dropdown]", function () {
 
 $(document).on("click", ".menu button", function () {
 	const buttonText = $(this).text();
-	console.log(buttonText)
 	const dropdownInput = $("#order_type");
 	dropdownInput.val(buttonText);
   
@@ -253,17 +266,24 @@ $(document).on("click", ".menu button", function () {
 let images;
 let imagesCount = 0;
 let pickType = "";
+let deletedObjects = [];
+let deletedAddresses = [];
+let deletedViolations = [];
+let updatedNotes = [];
 
 function orders(){
 	imagesCount = 0;
 	pickType = "";
+	deletedObjects = [];
+	deletedAddresses = [];
+	deletedViolations = [];
+	updatedNotes = [];
 
 	$("#objects").empty();
 	$("#addresses").empty();
 	$("#violations").empty();
 	const img = document.getElementById('selectedImage');
 	if (images) {
-		console.log("working")
 		images.destroy();
 		images = null;
 		img.style.display = 'none'; // Hide the image
@@ -335,9 +355,6 @@ $('#cropButton').on('click', function() {
 			button.textContent = "حذف";
 			button.type = "button"; // لمنع إرسال النموذج عند الضغط على زر الحذف
 			button.dataset.delete = imagesCount;
-			button.addEventListener('click', function() {
-				deleteImage(parseInt(this.dataset.delete));
-			});
 	
 			const croppedImage = document.createElement("img");
 			croppedImage.src = canvas.toDataURL();
@@ -386,13 +403,15 @@ $('#cropButton').on('click', function() {
 	},200);
 });
 
-// دالة لحذف صورة محددة من القائمة
-function deleteImage(index) {
-    const container = document.getElementById(`image${index}`);
+$(document).on("click","[data-delete]",function(){
+	index = this.dataset.delete;
+	const container = document.getElementById(`image${index}`);
     if (container) {
         container.remove();
+		note = document.getElementById(`violationNote${index}`);
+		if(note) note.remove();
     }
-}
+});
 
 
 window.addEventListener('popstate', function() {
@@ -405,32 +424,41 @@ window.addEventListener('beforeunload', function () {
 
 $('#imageForm').on('submit', function(event) {
     event.preventDefault(); // منع إرسال النموذج بالطريقة التقليدية
+	showLoading(true);
 
     const formData = new FormData(this);
 
+	const objectsImages = document.querySelectorAll('#objects > div:not([data-broke]) > .cropped-image');
+	objectsImages.forEach((croppedImage, index) => {
+		const blob = dataURItoBlob(croppedImage.src);
+		formData.append(`objectImage${index + 1}`, blob, `objectImage${index + 1}.png`);
+	});
 
-    const objectsImages = document.querySelectorAll('#objects .cropped-image');
-    objectsImages.forEach((croppedImage, index) => {
-        const blob = dataURItoBlob(croppedImage.src);
-        formData.append(`objectImage${index + 1}`, blob, `objectImage${index + 1}.png`);
-    });
+	const addressesImages = document.querySelectorAll('#addresses > div:not([data-broke]) > .cropped-image');
+	addressesImages.forEach((croppedImage, index) => {
+		const blob = dataURItoBlob(croppedImage.src);
+		formData.append(`addressImage${index + 1}`, blob, `addressImage${index + 1}.png`);
+		formData.append(`addressLatitude${index + 1}`, croppedImage.dataset.latitude);
+		formData.append(`addressLongitude${index + 1}`, croppedImage.dataset.longitude);
+	});
 
-	const addressesImages = document.querySelectorAll('#addresses .cropped-image');
-    addressesImages.forEach((croppedImage, index) => {
-        const blob = dataURItoBlob(croppedImage.src);
-        formData.append(`addressImage${index + 1}`, blob, `addressImage${index + 1}.png`);
-        formData.append(`addressLatitude${index + 1}`, croppedImage.dataset.latitude);
-        formData.append(`addressLongitude${index + 1}`, croppedImage.dataset.longitude);
-    });
+	const violationsImages = document.querySelectorAll('#violations > div:not([data-broke]) > .cropped-image');
+	violationsImages.forEach((croppedImage, index) => {
+		const blob = dataURItoBlob(croppedImage.src);
+		formData.append(`violationImage${index + 1}`, blob, `violationImage${index + 1}.png`);
+		formData.append(`violationLatitude${index + 1}`, croppedImage.dataset.latitude);
+		formData.append(`violationLongitude${index + 1}`, croppedImage.dataset.longitude);
+		formData.append(`violationNote${index + 1}`, $(`#violationNote${croppedImage.dataset.index}`).val());
+	});
 
-	const violationsImages = document.querySelectorAll('#violations .cropped-image');
-    violationsImages.forEach((croppedImage, index) => {
-        const blob = dataURItoBlob(croppedImage.src);
-        formData.append(`violationImage${index + 1}`, blob, `violationImage${index + 1}.png`);
-        formData.append(`violationLatitude${index + 1}`, croppedImage.dataset.latitude);
-        formData.append(`violationLongitude${index + 1}`, croppedImage.dataset.longitude);
-        formData.append(`violationNote${index + 1}`, $(`#violationNote${croppedImage.dataset.index}`).val());
-    });
+	formData.append('archived',archived);
+	formData.append("deletedObjects",deletedObjects)
+	formData.append("deletedAddresses",deletedAddresses)
+	formData.append("deletedViolations",deletedViolations)
+
+	updatedNotes.forEach(note => {
+		formData.append(`updatedNote${$(`#${note}`).data('note')}`,$(`#${note}`).val());
+	});
 
 
     $.ajax({
@@ -442,6 +470,7 @@ $('#imageForm').on('submit', function(event) {
         cache: false,
         processData: false,
         success: function(response) {
+			$("#pk").val("");
 			$("#order_number").val("");
 			$("#contractor").val("");
 			$("#distract").val("");
@@ -450,10 +479,15 @@ $('#imageForm').on('submit', function(event) {
 			snackBar("تم حفظ بيانات الطلب بنجاح");
 			orders();
 			getData("home","homeScreenList");
-			navigateScreen('mainScreen','mainScreenManager');
+			navigateScreen('mainScreen','mainScreenManager',true);
+			showLoading(false);
         },
+        
         error: function(error) {
-			snackBar(error.responseJSON.message);
+			showLoading(false);
+			try{
+				snackBar(error.responseJSON.message);
+			}catch {snackBar("حدث خطأ اثناء الحفظ الرجاء المحاولة مرة اخرى");}
         }
     });
 });
@@ -481,8 +515,20 @@ function dataURItoBlob(dataURI) {
     return new Blob([ab], { type: mimeString });
 }
 
-$(document).on("click","#addOrderBtn",function(){
+const openAddOrderScreen = () => {
+	orders();
 	navHeader = $("#navHeader").text();
+
+	$("#pk").val("");
+	$("#order_number").val("");
+	$("#contractor").val("");
+	$("#distract").val("");
+	$("#materials").val("");
+	$("#order_type").val("");
+	$("#objects").empty();
+	$("#addresses").empty();
+	$("#violations").empty();
+
 	$("#workTypeContainer, #materialsContainer, #inputsContainer").removeAttr("style");
 	$("#order_type_menu").empty();
 
@@ -507,6 +553,10 @@ $(document).on("click","#addOrderBtn",function(){
 		$("#order_type").val('الملفات الجاهزة');
 	}
 	navigateScreen('addOrder','mainScreenManager');
+}
+
+$(document).on("click","#addOrderBtn",function(){
+	openAddOrderScreen();
 });
 
 
@@ -518,23 +568,37 @@ const getData = (table, listID) => {
         type: 'GET',
         success: function(res) {
             res.data.forEach(d => {
-				$(`#${listID}`).append(`<p class='month'>${d[0]}</p>`);
-				d[1].forEach(w => {
-					$(`#${listID}`).append(`<button class="item" data-order = "${w[3]}">
-					<p>رقم الطلب : ${w[0]}</p>
-					<p>نوع الطلب : ${w[1]}</p>
-					<p>${w[2]}</p>
-				</button>
-				<br>`);
-				});
+				if(listID == "orderScreenList"){
+					$(`#${listID}`).append(`<p class='month'>${d[0]}</p>`);
+					d[1].forEach(w => {
+						$(`#${listID}`).append(`<button class="item" data-archive = "${w[3]}">
+						<p>رقم الطلب : ${w[0]}</p>
+						<p>نوع الطلب : ${w[1]}</p>
+						<p>${w[2]}</p>
+					</button>
+					<br>`);
+					});
+				}else{
+					$(`#${listID}`).append(`<p class='month'>${d[0]}</p>`);
+					d[1].forEach(w => {
+						$(`#${listID}`).append(`<button class="item" data-order = "${w[3]}">
+						<p>رقم الطلب : ${w[0]}</p>
+						<p>نوع الطلب : ${w[1]}</p>
+						<p>${w[2]}</p>
+					</button>
+					<br>`);
+					});
+				}
 			});
 			showLoading(false);
-        }
+        },
+		error: function(error){
+			showLoading(false);
+		}
     });
 }
 
-$(document).on("click","#viewOrderBtn",function(){
-	navigateScreen('viewOrders','mainScreenManager');
+const viewData = () => {
 	if($("#navHeader").text() == "المشتركين"){
 		getData('subscribers','orderScreenList');
 	}
@@ -546,7 +610,70 @@ $(document).on("click","#viewOrderBtn",function(){
 	}
 	else if($("#navHeader").text() == "الملفات الجاهزة"){
 		getData('readyFiles','orderScreenList');
+	}else{
+		getData('home','homeScreenList');
 	}
+}
+
+$(document).on("click","#viewOrderBtn",function(){
+	navigateScreen('viewOrders','mainScreenManager');
+	viewData();
+});
+
+$(document).on("click","[data-broke]",function(){
+	broke = this.dataset.broke;
+	if(broke.slice(0,3) == "obj") deletedObjects.push(this.dataset.broke.slice(3,));
+	else if(broke.slice(0,3) == "adr") deletedAddresses.push(this.dataset.broke.slice(3,));
+	else deletedViolations.push(this.dataset.broke.slice(3,));
+});
+
+$(document).on("click","[data-archive]",function(){
+	this_el = this;
+	showLoading(true);
+	$.ajax({
+        url: location.href+`?archive=${this_el.dataset.archive}`,
+        type: 'GET',
+        success: function(res) {
+			navigateScreen("addOrder","mainScreenManager");
+			openAddOrderScreen();
+
+			$("#pk").val(res.data[8]);
+			$("#order_number").val(res.data[0]);
+			$("#contractor").val(res.data[1]);
+			$("#distract").val(res.data[2]);
+			$("#materials").val(res.data[3]);
+			$("#order_type").val(res.data[4]);
+
+			$("#objects").empty()
+			res.data[5].forEach(object => {
+					$("#objects").append(`<div data-broke = 'obj${object[1]}' id="image${imagesCount}"><img src="${rettext(object[0])}" class="cropped-image" data-index="${imagesCount}"><button type="button" data-delete="${imagesCount}">حذف</button></div>`);
+					imagesCount++;
+				}
+			);
+
+			res.data[6].forEach(address => {
+					$("#addresses").append(`<div data-broke = 'adr${address[1]}' id="image${imagesCount}"><img src="${rettext(address[0])}" class="cropped-image" data-index="${imagesCount}"><button type="button" data-delete="${imagesCount}">حذف</button></div>`);
+					imagesCount++;
+				}
+			);
+
+			res.data[7].forEach(violation => {
+					$("#violations").append(`<div data-broke = 'vio${violation[2]}' id="image${imagesCount}"><img src="${rettext(violation[0])}" class="cropped-image" data-index="${imagesCount}"><button type="button" data-delete="${imagesCount}">حذف</button></div>`);
+					$("#violations").append(`<textarea class="textarea" data-note="${violation[2]}" placeholder="وصف المخالفة" id="violationNote${imagesCount}">${rettext(violation[1])}</textarea>`);
+					imagesCount++;
+				}
+			);
+
+			showLoading(false);
+        },
+		error: function(error){
+			showLoading(false);
+		}
+    });
+});
+
+$(document).on("change","[data-note]",function(){
+	if(!this.id.includes(...updatedNotes)) updatedNotes.push(this.id);
 });
 
 $(document).on("click","[data-order]",function(){
@@ -558,19 +685,98 @@ $(document).on("click","[data-order]",function(){
         success: function(res) {
 			$("#orderDetailsContainer").empty();
 			$("#orderDetailsContainer").append(`<div class="data"><p class="key">رقم الطلب</p><p class="value">${res.data[0]}</p></div>`);
-			if(res.data[1] != null) $("#orderDetailsContainer").append(`<div class="data"><p class="key">المقاول</p><p class="value">${res.data[1]}</p></div>`);
-			if(res.data[2] != null) $("#orderDetailsContainer").append(`<div class="data"><p class="key">الحي</p><p class="value">${res.data[2]}</p></div>`);
+			if(res.data[1] != null && res.data[1] != "") $("#orderDetailsContainer").append(`<div class="data"><p class="key">المقاول</p><p class="value">${res.data[1]}</p></div>`);
+			if(res.data[2] != null && res.data[2] != "") $("#orderDetailsContainer").append(`<div class="data"><p class="key">الحي</p><p class="value">${res.data[2]}</p></div>`);
 			if(res.data[3] != null && res.data[3] != "") $("#orderDetailsContainer").append(`<div class="data"><p class="key">المواد</p><p class="value">${res.data[3]}</p></div>`);
 			$("#orderDetailsContainer").append(`<div class="data"><p class="key">نوع الطلب</p><p class="value">${res.data[4]}</p></div>`);
 
-			res.data[5].forEach(url => $("#orderDetailsContainer").append(`<a data-fancybox="gallery" href="${url}" data-caption="نموذج"><img class="order-image" src="${url}"></a>`));
-			res.data[6].forEach(url => $("#orderDetailsContainer").append(`<a data-fancybox="gallery" href="${url}" data-caption="صور الموقع"><img class="order-image" src="${url}"></a>`));
-			res.data[7].forEach(url => $("#orderDetailsContainer").append(`<a data-fancybox="gallery" href="${url[0]}" data-caption="مخالفات السلامة"><img class="order-image" src="${url[0]}"></a>`));
+			if(res.data[5].length!==0)$("#orderDetailsContainer").append(`<br><br><p class="order-img-header">النماذج</p>`);
+			res.data[5].forEach(url => $("#orderDetailsContainer").append(`<a data-fancybox="gallery" href="${url[0]}" data-caption="نموذج"><img loading="lazy" class="order-image" src="${url[0]}"></a>`));
+			if(res.data[6].length!==0)$("#orderDetailsContainer").append(`<br><br><p class="order-img-header">صور الموقع</p>`);
+			res.data[6].forEach(url => $("#orderDetailsContainer").append(`<a data-fancybox="gallery" href="${url[0]}" data-caption="صور الموقع"><img loading="lazy" class="order-image" src="${url[0]}"></a>`));
+			if(res.data[7].length!==0)$("#orderDetailsContainer").append(`<br><br><p class="order-img-header">مخالفات السلامة</p>`);
+			res.data[7].forEach(url => 
+				$("#orderDetailsContainer").append(`<a data-fancybox="gallery" href="${rettext(url[0])}" data-caption="مخالفات السلامة"><img loading="lazy" class="order-image" src="${rettext(url[0])}"></a><p><span>وصف المخالفة:</span><br>${rettext(url[1])}</p>`)
+			);
 
-			setTimeout(function(){
-				navigateScreen("orderDetails","mainScreenManager");
-			},1);
+			$("#orderDetailsContainer").append(`
+			<br><br>
+			<div style="width:80%;margin:auto;">
+			  <hr>
+			  <br><br>
+			  <a href='/export/${res.data[8]}' class="primary" style="width:100%;">تصدير</a>
+			  <br><br>
+			</div>`);
+
+			navigateScreen("orderDetails","mainScreenManager");
 			showLoading(false);
-        }
+        },
+		error: function(error){
+			showLoading(false);
+		}
     });
 });
+
+
+$(document).on("click","#orderDetailsBackBtn",function(){
+	if (screens[screens.length-2] == "searchScreen") navigateScreen('searchScreen','mainScreenManager',true);
+	else if($("#navHeader").text() != "الصفحة الرئيسية") navigateScreen('viewOrders','mainScreenManager',true);
+	else navigateScreen('mainScreen','mainScreenManager',true);
+});
+
+window.onload = () => {
+	if(location.pathname == "/viewOrders") location.href="/"
+	if(location.pathname == "/orderDetails") location.href="/"
+}
+
+archived = false;
+
+$(document).on("click", "#saveOrder", function(){
+	archived = false;
+});
+
+
+$(document).on("click", "#archiveOrder", function(){
+	archived = true;
+});
+
+function debounce(func, delay) {
+    let timeoutId;
+    return function() {
+        const context = this;
+        const args = arguments;
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(function() {
+            func.apply(context, args);
+        }, delay);
+    };
+}
+
+// تحديد وظيفة لإرسال البحث إلى السيرفر
+function sendSearchRequest() {
+    // قم بإرسال البحث إلى السيرفر هنا
+	searchValue = $("#search").val();
+	if(searchValue.trim() == "") $("#searchResult").empty();
+	else{
+		$.ajax({
+			url: location.href+`?search=${searchValue}`,
+			type: 'GET',
+			success: function(res) {
+				$("#searchResult").empty();
+				res.data.forEach(d => $("#searchResult").append(`<button class="item" data-order="${d[0]}">
+				<p>رقم الطلب : ${d[1]}</p>
+				<p>نوع الطلب : ${d[2]}</p>
+				<p>${d[3]}</p>
+			  </button>`));
+			}
+		});
+	}
+}
+
+const input = document.getElementById('search');
+
+// تطبيق debounce على وظيفة sendSearchRequest بفاصل زمني 500 مللي ثانية (نصف ثانية)
+const debouncedSendSearchRequest = debounce(sendSearchRequest, 500);
+
+// استماع لحدث الكتابة داخل input
+input.addEventListener('input', debouncedSendSearchRequest);

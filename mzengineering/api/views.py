@@ -46,7 +46,11 @@ def AddOrder(request):
         return JsonResponse({"message": "يجب تسجيل الدخول للوصول إلى هذا المحتوى."}, status=401)
 
     order_data = request.data
+    order_data._mutable = True
     order_data['user'] = request.user.pk
+    order_data._mutable = False
+    if order_data["pk"] != "":
+        order_get = Order.objects.get(pk=int(order_data["pk"]))
 
     message = None
 
@@ -60,6 +64,10 @@ def AddOrder(request):
         message = message or 'رقم الطلب مطلوب'
     elif len(order_number) > 50:
         message = message or 'رقم الطلب يجب ألا يتجاوز 50 حرفًا'
+    if order_data["pk"] != "":
+        if order_get.pk != int(order_data["pk"]):
+            if Order.objects.filter(order_number=order_number).exists():
+                message = message or 'رقم الطلب يجب أن يكون فريدًا'
     elif Order.objects.filter(order_number=order_number).exists():
         message = message or 'رقم الطلب يجب أن يكون فريدًا'
 
@@ -80,18 +88,48 @@ def AddOrder(request):
 
     if message:
         return JsonResponse({"message": message}, status=400)
-
-    try:
-        order = Order.objects.create(
-            user=request.user,
-            order_number=order_number,
-            contractor=contractor,
-            distract=distract,
-            materials=materials,
-            order_type=order_type
-        )
-    except ValidationError as e:
-        return JsonResponse({"message": str(e)}, status=400)
+    if order_data['pk'] != "":
+        updated_notes = [(key, value) for key, value in order_data.items() if key.startswith('updatedNote')]
+        for note in updated_notes:
+            try:
+                gNote = ViolationImage.objects.get(pk=int(note[0].replace('updatedNote','')),order=order_get)
+                gNote.notes=note[1]
+                gNote.save()
+            except:pass
+        for deletedImage in order_data["deletedObjects"].split(","):
+            if deletedImage != "":
+                obj = ObjectImage.objects.get(pk=int(deletedImage),order=order_get)
+                obj.delete()
+        for deletedImage in order_data["deletedAddresses"].split(","):
+            if deletedImage != "":
+                adr = AddressImage.objects.get(pk=int(deletedImage),order=order_get)
+                adr.delete()
+        for deletedImage in order_data["deletedViolations"].split(","):
+            if deletedImage != "":
+                vio = ViolationImage.objects.get(pk=int(deletedImage),order=order_get)
+                vio.delete()
+        order_get.user=request.user
+        order_get.order_number=order_number
+        order_get.contractor=contractor
+        order_get.distract=distract
+        order_get.materials=materials
+        order_get.order_type=order_type
+        order_get.archived = False if order_data["archived"] == 'false' else True
+        order_get.save()
+        order = order_get
+    else:
+        try:
+            order = Order.objects.create(
+                user=request.user,
+                order_number=order_number,
+                contractor=contractor,
+                distract=distract,
+                materials=materials,
+                order_type=order_type,
+                archived = False if order_data["archived"] == 'false' else True
+            )
+        except:
+            return JsonResponse({"message": str(e)}, status=400)
 
     # معالجة وحفظ صور الأشياء (Objects)
     objects_images_data = [(key, value) for key, value in order_data.items() if key.startswith('objectImage')]
