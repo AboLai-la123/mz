@@ -1,0 +1,16 @@
+<div class="main-list" id="usersScreenList">
+    <div class="items">
+      <p class="month" style="width:20px !important;">المستخدمين</p>
+      <button class="outline list-button" id="addUser">إضافة إستشاري</button>
+      <div id="usersList">
+        {% if request.user.is_superuser %}
+        {% for user in users %}
+        <button class="item" data-user="{{user.pk}}">
+          <p class="list-item-header">{{user.first_name}} {{user.last_name}}</p>
+          <p>الدور : {% if user.is_superuser %}مدير{% else %}إستشاري{% endif %}</p>
+        </button>
+        {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+  </div>

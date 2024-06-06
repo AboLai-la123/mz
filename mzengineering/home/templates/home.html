@@ -57,8 +57,14 @@
       <div class="screen" id="orderDetails">
         {% include "components/orders/orderDetails.html" %}
       </div>
+      <div class="screen" id="addUserScreen">
+        {% include "components/users/addUser.html" %}
+      </div>
       <div class="screen image-editor-screen" id="imageEditor">
         {% include "components/screens/imageEditor.html" %}
+      </div>
+      <div class="screen" id="editPasswordScreen">
+        {% include "components/homeScreens/editPassword.html" %}
       </div>
       {% include "components/drawer.html" %}
     </div>
@@ -85,9 +91,11 @@ window.addEventListener('load', function() {
   document.body.style.display = 'block';
 });
   var isLoggedIn = {{isLoggedIn}};
+  var isSuperUser = {{isSuperUser}};
     setTimeout(() => {
       if(isLoggedIn){
-        screen = "{{pageName}}";
+        if("{{pageName}}" == "loginScreen") screen = "mainScreen";
+        else screen = "{{pageName}}";
       }else{
         screen = "loginScreen";
       }

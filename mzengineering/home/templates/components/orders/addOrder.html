@@ -115,22 +115,13 @@
             <br>
             <button class="outline" id="archiveOrder">حفظ وأرشفة</button>
             <br>
+            {% if request.user.is_superuser %}
+            <div id="deleteOrderContainer" style="display:none;">
+              <button class="outline-error" type="button" style="width:100%;" id="dataDeleteOrder2">حذف</button>
+              <br>
+            </div>
+            {% endif %}
           </form>
-        </div>
-      </div>
-      <div class="stepper">
-        <div class="center-container">
-          <h1>C</h1>
-        </div>
-      </div>
-      <div class="stepper">
-        <div class="center-container">
-          <h1>D</h1>
-        </div>
-      </div>
-      <div class="stepper">
-        <div class="center-container">
-          <h1>E</h1>
         </div>
       </div>
     </div>
@@ -138,13 +129,16 @@
     const allowPermessions = () => {
       if ("geolocation" in navigator) {
       // طلب إذن الوصول إلى الموقع
+      showLoading(true);
       navigator.geolocation.getCurrentPosition(
         // دالة النجاح التي تُنفذ عند الحصول على الإحداثيات
         function(position) {
+          showLoading(false);
           navigateStepper('addOrder', true);
         },
         // دالة الخطأ التي تُنفذ في حالة حدوث خطأ
         function(error) {
+          showLoading(false);
           alert("Error Code = " + error.code + " - " + error.message);
         }
       );

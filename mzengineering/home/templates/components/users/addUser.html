@@ -1,0 +1,46 @@
+<nav>
+    <div class="left-icons">
+      <button onclick="navigateScreen('mainScreen','mainScreenManager',true);" class="ibtn"><span class="material-symbols-sharp">arrow_back</span></button>
+    </div>
+    <p id="userScreenHeader">إضافة إستشاري</p>
+  </nav>
+  <main>
+    <div class="center-container">
+        <form method="POST" id="userForm" data-form action = "/api/add-user" class="container" style="width:80%;">
+        {% csrf_token %}
+        <br>
+        <br>
+        <input type="hidden" name="userPK" id="userPK">
+        <label for="" class="filled">
+            <input type="text" value="" maxlength="50" name="job_number" id="job_number" required>
+            <span data-label="الرقم الوظيفي"></span>
+        </label>
+        <br>
+        <label for="" class="filled">
+            <input type="text" value="" maxlength="100" name="first_name" id="first_name" required>
+            <span data-label="الإسم الأول"></span>
+        </label>
+        <br>
+        <label for="" class="filled">
+            <input type="text" value="" maxlength="100" name="last_name" id="last_name" required>
+            <span data-label="الإسم الأخير"></span>
+        </label>
+        <div id="passwordContainer" class="container">
+            <br>
+            <label for="" class="filled">
+                <input type="password" value="" maxlength="100" name="userPassword" id="userPassword" required>
+                <span data-label="كلمة المرور"></span>
+            </label>
+        </div>
+        <div id="editPasswordContainer" style="display:none">
+            <br>
+            <button id="editPassword" type="button" style="color:dodgerblue;border:0;background:transparent;">تعديل كلمة المرور</button>
+        </div>
+        <br>
+        <br>
+        
+        <button class="primary" id="saveUser">حفظ</button>
+        <br>
+        </form>
+    </div>
+  </main>

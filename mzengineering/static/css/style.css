@@ -192,7 +192,7 @@ input:focus, input:active {
 /* -- Button -- */
 
 
-.outline{
+.outline, .outline-error{
     height:40px;
     display:flex;
     align-items: center;
@@ -207,7 +207,11 @@ input:focus, input:active {
     border:1px solid rgb(0, 0, 255);
     background-color:transparent;
 }
-.outline:active, .outline:focus{
+.outline-error{
+    color: red;
+    border-color: red;
+}
+.outline:active, .outline:focus, .outline-error:active, .outline-error:focus{
     background-color:rgba(0,0,255,.1);
 }
 
@@ -642,4 +646,31 @@ main{
 
 #orderDetailsContainer > p span{
     color:#555;
+}
+
+
+
+
+/* -- Lists -- */
+
+
+.item p:nth-child(1){
+    font-size:16pt;
+    overflow:hidden; 
+    white-space:nowrap; 
+    text-overflow: ellipsis;
+    width:80%;
+}
+
+.item p:nth-child(2){
+    color:#666;
+}
+
+.item .list-item-header:nth-child(1){
+    width:100%;
+}
+
+.list-button{
+    float:Right;
+    margin-top:-55px;
 }

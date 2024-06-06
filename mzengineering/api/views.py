@@ -1,14 +1,39 @@
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponseBadRequest, JsonResponse
+from django.contrib.auth.models import User
 
 from rest_framework.decorators import api_view
 from home.models import Order, ObjectImage, AddressImage, ViolationImage
 from .serializers import ObjectImageSerializer, AddressImageSerializer, ViolationImageSerializer, LoginSerializer
+from django.views.decorators.csrf import csrf_exempt
+import re
 
+def check_password(password):
+    # التحقق من طول كلمة المرور
+    if len(password) < 8:
+        return "كلمة المرور ضعيفة: يجب أن تكون على الأقل 8 أحرف."
+    
+    # التحقق من وجود حرف كبير
+    if not re.search(r'[A-Z]', password):
+        return "كلمة المرور ضعيفة: يجب أن تحتوي على حرف كبير واحد على الأقل."
+    
+    # التحقق من وجود حرف صغير
+    if not re.search(r'[a-z]', password):
+        return "كلمة المرور ضعيفة: يجب أن تحتوي على حرف صغير واحد على الأقل."
+    
+    # التحقق من وجود رقم
+    if not re.search(r'\d', password):
+        return "كلمة المرور ضعيفة: يجب أن تحتوي على رقم واحد على الأقل."
+    
+    # التحقق من وجود رمز خاص
+    if not re.search(r'[@$!%*?&]', password):
+        return "كلمة المرور ضعيفة: يجب أن تحتوي على رمز خاص واحد على الأقل."
+    
+    return None
 
 class LoginView(APIView):
     def post(self, request, *args, **kwargs):
@@ -39,6 +64,112 @@ class LoginView(APIView):
 def LogoutView(request):
     logout(request)
     return redirect("/")
+
+@api_view(['POST'])
+def EditPassword(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"message": "يجب تسجيل الدخول للوصول إلى هذا المحتوى."}, status=401)
+    oldPassword = request.data.get("oldPassword")
+    newPassword = request.data.get("newPassword")
+
+    message = None
+
+    if not oldPassword:
+        message = 'كلمة المرور مطلوبة'
+    else:
+        userPasswordFilter = authenticate(username=request.user.username,password=oldPassword)
+        if userPasswordFilter == None:
+            message = 'كلمة المرور غير صحيحة'
+
+    if not message and not newPassword:
+        message = message or 'كلمة المرور الجديدة مطلوبة'
+    elif len(oldPassword) > 100:
+        message = message or 'كلمة المرور الجديدة يجب ألا تتجاوز 100 حرفًا'
+    else:
+        message = message or check_password(request.data.get("newPassword"))
+    
+    
+    if message:
+        return JsonResponse({"message": message}, status=400)
+    
+    user_get = User.objects.get(pk=request.user.pk)
+    user_get.set_password(request.data.get("newPassword"))
+    user_get.save()
+
+    return JsonResponse({'screen': 'logout'}, status=201)
+
+
+@api_view(['POST'])
+def AddUser(request):
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        return JsonResponse({"message": "يجب تسجيل الدخول للوصول إلى هذا المحتوى."}, status=401)
+
+    user_data = request.data
+    if user_data["userPK"] != "":
+        user_get = User.objects.get(pk=int(user_data["userPK"]))
+
+    message = None
+
+    job_number = user_data.get('job_number')
+    first_name = user_data.get('first_name')
+    last_name  = user_data.get('last_name')
+    userPassword   = user_data.get('userPassword')
+
+    if not job_number:
+        message = message or 'الرقم الوظيفي مطلوب'
+    elif len(job_number) > 50:
+        message = message or 'رقم الوظيفي يجب ألا يتجاوز 50 حرفًا'
+    if user_data["userPK"] != "":
+        if user_get.username != job_number:
+            if User.objects.filter(username=job_number).exists():
+                message = message or 'الرقم الوظيفي يجب أن يكون فريدًا'
+    elif User.objects.filter(username=job_number).exists():
+        message = message or 'الرقم الوظيفي يجب أن يكون فريدًا'
+
+    if not message and firstName.strip() == "":
+        message = message or 'الإسم الأول مطلوب'
+    elif not message and len(first_name) > 100:
+        message = message or 'الإسم الأول يجب ألا يتجاوز 100 حرفًا'
+
+    if not message and lastName.strip() == "":
+        message = message or 'الإسم الأخير مطلوب'
+    elif not message and len(last_name) > 100:
+        message = message or 'الإسم الأخير يجب ألا يتجاوز 100 حرفًا'
+
+    if not message and userPassword.strip() == "":
+        message = message or 'كلمة المرور مطلوبة'
+    elif not message and len(userPassword) > 100:
+        message = message or 'كلمة المرور يجب ألا تتجاوز 100 حرفًا'
+    else:
+        message = message or check_password(request.data.get("newPassword"))
+
+    if message:
+        return JsonResponse({"message": message}, status=400)
+    if user_data['userPK'] != "":
+        user_get.username=job_number
+        user_get.first_name=first_name
+        user_get.last_name=last_name
+        user_get.save()
+        user = user_get
+    else:
+        try:
+            user = User.objects.create_user(
+                username=job_number,
+                first_name=first_name,
+                last_name=last_name,
+                password=userPassword
+            )
+        except:
+            return JsonResponse({"message": str(e)}, status=400)
+    return JsonResponse({'screen': 'mainScreen','screenManager':'mainScreenManager','message':''}, status=201)
+
+@csrf_exempt
+def DeleteOrder(request):
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        return JsonResponse({"message": "يجب تسجيل الدخول للوصول إلى هذا المحتوى."}, status=401)
+    order = get_object_or_404(Order, pk = request.GET["pk"])
+    order.delete()
+    return JsonResponse({"message":"تم حذف الطلب بنجاح"}, status=201)
 
 @api_view(['POST'])
 def AddOrder(request):

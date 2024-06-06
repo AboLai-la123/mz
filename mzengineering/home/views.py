@@ -24,7 +24,7 @@ import uuid
 
 # Create your views here.
 def home(request, page_name="mainScreen"):
-    context = {'isLoggedIn': "true" if request.user.is_authenticated else "false", "pageName": page_name}
+    context = {'isLoggedIn': "true" if request.user.is_authenticated else "false", "pageName": page_name,"isSuperUser":'false'}
     if request.user.is_authenticated:
         data = []
         if "search" in request.GET:
@@ -40,6 +40,24 @@ def home(request, page_name="mainScreen"):
                 if now.strftime('%A') == 'Saturday':dayName = "السبت"
                 data.append([order.pk,order.order_number,order.order_type,f'{now.day} {dayName}'])
             return JsonResponse({"data":data})
+        elif "user" in request.GET:
+            data = [
+                request.user.pk,
+                request.user.username,
+                request.user.first_name,
+                request.user.last_name,
+            ]
+            return JsonResponse({"data":data})
+        elif "users" in request.GET and request.user.is_superuser:
+            users = []
+            for user in User.objects.all()[::-1]:
+                users.append([
+                    user.pk,
+                    user.first_name,
+                    user.last_name,
+                    user.is_superuser,
+                ])
+            return JsonResponse({"users":users})
         elif "order" in request.GET or "archive" in request.GET:
             order_type = "order"
             if "archive" in request.GET:
@@ -128,6 +146,8 @@ def home(request, page_name="mainScreen"):
         if len(request.GET) != 0:
             return JsonResponse({"data":data})
         context['data'] = data
+        context['users'] = User.objects.all()[::-1]
+        context["isSuperUser"] = "true" if request.user.is_superuser else "false"
     return render(request, "home.html", context)
 
 
@@ -143,11 +163,11 @@ def export_order_as_pdf(request, order_pk):
         pdf_file_path = f'/home/assays/mz/mzengineering/media/exportPDF/{order.pdf_file_name}'
 
     image_list = [
-        Image.open(obj.image.path) for obj in ObjectImage.objects.filter(order=order)
+        Image.open(obj.image.path).convert('RGB') for obj in ObjectImage.objects.filter(order=order)
     ] + [
-        Image.open(addr.image.path) for addr in AddressImage.objects.filter(order=order)
+        Image.open(addr.image.path).convert('RGB') for addr in AddressImage.objects.filter(order=order)
     ] + [
-        Image.open(viol.image.path) for viol in ViolationImage.objects.filter(order=order)
+        Image.open(viol.image.path).convert('RGB') for viol in ViolationImage.objects.filter(order=order)
     ]
 
     if image_list:

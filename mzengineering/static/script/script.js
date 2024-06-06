@@ -56,8 +56,11 @@ function navigateDrawer(screen,instance) {
 	if(typeof window[screen] === "function") {
 		window[screen]();
 	}
-	$('#navHeader').text();
-	viewData();
+	if($('#navHeader').text() == "الإستشاريين"){
+		viewUsers();
+	}{
+		viewData();
+	}
 }
 
 const navigateStepper = (stepperManager, next) => {
@@ -175,8 +178,16 @@ function otherSnackbar(title){
 
 $(document).on("submit", "form[data-form]", function(e) {
     e.preventDefault();
+
+	if(this.id == "editPasswordForm") {
+		if($("#newPassword").val() != $("#repeatPassword").val()){
+			snackBar("كلمة المرور غير متطابقة");
+			return;
+		}
+	}
+    showLoading(true);
+
     var thisElement = $(this);
-	showLoading(true);
     var formData = new FormData(this);
 
     $.ajax({
@@ -189,16 +200,25 @@ $(document).on("submit", "form[data-form]", function(e) {
         processData: false,
         success: function(res) {
             showLoading(false);
+			if(res.screen == "logout") location.href = "/";
+            if($("#navHeader").text() == "الإستشاريين") viewUsers();
             if (res.message === "") {
-				if(thisElement.attr("id") == "loginForm") location.href="/mainScreen";
-				else navigateScreen(res.screen, res.screenManager);
+                if(thisElement.attr("id") == "loginForm") {
+                    location.href="/mainScreen";
+                } else {
+                    navigateScreen(res.screen, res.screenManager);
+                }
+                // فراغ المدخلات بعد النجاح
+                thisElement.find('input[type="text"], input[type="email"], input[type="password"], textarea').val('');
+                thisElement.find('input[type="checkbox"], input[type="radio"]').prop('checked', false);
+                thisElement.find('select').prop('selectedIndex', 0);
             } else {
                 snackBar(res.message);
             }
         },
-        error: function() {
-			showLoading(false);
-            snackBar("حدث خطأ أثناء الحفظ!");
+        error: function(error) {
+            showLoading(false);
+            snackBar(error.responseJSON.message);
         }
     });
 });
@@ -528,6 +548,8 @@ const openAddOrderScreen = () => {
 	$("#objects").empty();
 	$("#addresses").empty();
 	$("#violations").empty();
+	try{$("#deleteOrderContainer").css({display:"none"});}
+	catch{}
 
 	$("#workTypeContainer, #materialsContainer, #inputsContainer").removeAttr("style");
 	$("#order_type_menu").empty();
@@ -559,6 +581,26 @@ $(document).on("click","#addOrderBtn",function(){
 	openAddOrderScreen();
 });
 
+const viewUsers = () => {
+	showLoading(true);
+	$(`#usersList`).empty();
+	$.ajax({
+        url: location.href+`?users`,
+        type: 'GET',
+        success: function(res) {
+            res.users.forEach(user => {
+				$(`#usersList`).append(`<button class="item" data-user="${user[0]}">
+				<p class="list-item-header">${rettext(user[1])} ${rettext(user[2])}</p>
+				<p>الدور : ${user[3]?"مدير":"إستشاري"}</p>
+			  </button>`);
+			});
+			showLoading(false);
+        },
+		error: function(){
+			showLoading(false);
+		}
+    });
+}
 
 const getData = (table, listID) => {
 	showLoading(true);
@@ -592,7 +634,7 @@ const getData = (table, listID) => {
 			});
 			showLoading(false);
         },
-		error: function(error){
+		error: function(){
 			showLoading(false);
 		}
     });
@@ -643,6 +685,11 @@ $(document).on("click","[data-archive]",function(){
 			$("#distract").val(res.data[2]);
 			$("#materials").val(res.data[3]);
 			$("#order_type").val(res.data[4]);
+			try{
+				$("#deleteOrderContainer").css({display:"block"});
+				$("#dataDeleteOrder2").attr("data-delete-order", `${res.data[8]}`);
+			}
+			catch{}
 
 			$("#objects").empty()
 			res.data[5].forEach(object => {
@@ -705,6 +752,8 @@ $(document).on("click","[data-order]",function(){
 			  <hr>
 			  <br><br>
 			  <a href='/export/${res.data[8]}' class="primary" style="width:100%;">تصدير</a>
+			  ${isSuperUser?`<br>
+			  <button data-delete-order='${res.data[8]}' class="outline-error" style="width:100%;" id="deleteOrderBtn">حذف</button>`:""}
 			  <br><br>
 			</div>`);
 
@@ -717,6 +766,25 @@ $(document).on("click","[data-order]",function(){
     });
 });
 
+$(document).on("click","[data-delete-order]",function(){
+	if(confirm("هل أنت متأكد أنك تريد الحذف؟")){
+		showLoading(true);
+		$.ajax({
+			url: `/api/delete?pk=${this.dataset.deleteOrder}`,
+			type: 'GET',
+			success: function(res) {
+				showLoading(false);
+				viewData();
+				snackBar(res.message);
+				navigateScreen("mainScreen","mainScreenManager",true);
+			},
+			error: function(error) {
+				showLoading(false);
+				snackBar(error.responseJSON.message);
+			}
+		});
+	}
+});
 
 $(document).on("click","#orderDetailsBackBtn",function(){
 	if (screens[screens.length-2] == "searchScreen") navigateScreen('searchScreen','mainScreenManager',true);
@@ -725,8 +793,8 @@ $(document).on("click","#orderDetailsBackBtn",function(){
 });
 
 window.onload = () => {
-	if(location.pathname == "/viewOrders") location.href="/"
-	if(location.pathname == "/orderDetails") location.href="/"
+	const urls = ["/viewOrders","/orderDetails","/addUserScreen","/editPasswordScreen"];
+	if(urls.includes(location.pathname)) location.href="/";
 }
 
 archived = false;
@@ -780,3 +848,41 @@ const debouncedSendSearchRequest = debounce(sendSearchRequest, 500);
 
 // استماع لحدث الكتابة داخل input
 input.addEventListener('input', debouncedSendSearchRequest);
+
+
+$(document).on("click","#addUser",function(){
+	$("#userPK").val('');
+	$("#job_number").val('');
+	$("#first_name").val('');
+	$("#last_name").val('');
+	$("#userPassword").attr('required','');
+	$("#passwordContainer").removeAttr("style");
+	$("#userScreenHeader").text("إضافة إستشاري");
+	$("#editPasswordContainer").css({display:"none"});
+	navigateScreen("addUserScreen","mainScreenManager");
+});
+
+$(document).on("click","#editPassword",function(){
+	navigateScreen("editPasswordScreen","mainScreenManager");
+});
+
+$(document).on("click","#settingsBtn",function(){
+	this_el = this;
+	showLoading(true);
+	$.ajax({
+		url: location.href+`?user=${this.dataset.pk}`,
+		type: 'GET',
+		success: function(res) {
+			showLoading(false);
+			$("#userPK").val(res.data[0]);
+			$("#job_number").val(res.data[1]);
+			$("#first_name").val(res.data[2]);
+			$("#last_name").val(res.data[3]);
+			$("#userPassword").removeAttr('required');
+			$("#passwordContainer").css({display:"none"});
+			$("#userScreenHeader").text("تعديل بيانات الملف الشخصي");
+			$("#editPasswordContainer").css({display:"block"});
+			navigateScreen('addUserScreen',"mainScreenManager");
+		}
+	});
+});

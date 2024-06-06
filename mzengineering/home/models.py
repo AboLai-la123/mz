@@ -44,7 +44,7 @@ class AddressImage(models.Model):
 class ViolationImage(models.Model):
     order = models.ForeignKey(Order, related_name='violation_images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='violation_images')
-    notes = models.TextField(null=False, blank=False)
+    notes = models.TextField(null=True, blank=True)
     latitude = models.CharField(max_length=20)
     longitude = models.CharField(max_length=20)
 
@@ -80,9 +80,9 @@ def process_image(image, instance):
     logo = logo.resize((logo_width, logo_height), Image.LANCZOS)
 
     # إعدادات النص
-    texts = [f"{instance.order.user.first_name} {instance.order.user.last_name}", instance.order.distract, instance.order.contractor, f'{instance.latitude}N {instance.longitude}E']
+    texts = [f"{instance.order.user.first_name} {instance.order.user.last_name}", instance.order.distract, f'{instance.latitude}N {instance.longitude}E'[::-1]]
     reshaped_texts = [arabic_reshaper.reshape(text) for text in texts]  # تشكيل النصوص
-    bidi_texts = [get_display(reshaped_text) for reshaped_text in reshaped_texts]  # عكس اتجاه النصوص لتظهر بشكل صحيح
+    bidi_texts = [get_display(reshaped_text[::-1]) for reshaped_text in reshaped_texts]  # عكس اتجاه النصوص لتظهر بشكل صحيح
 
     font_size = 36
     font = ImageFont.truetype(path, font_size)
